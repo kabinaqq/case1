@@ -1328,47 +1328,6 @@ function spinKilowatt(){
     track.style.transform = `translateX(-${offset}px)`;
   });
 
-    function spinPRERCH(){
-  if(isSpinning) return;
-  if(balance < PRERCH_COST){
-    alert('Недостаточно средств для открытия кейса.');
-    return;
-  }
-  const btn = document.getElementById('btn-open-PRERCH');
-  const track = document.getElementById('track-PRERCH');
-  const container = document.getElementById('roulette-container-PRERCH');
-  if(!track || !container){
-    alert('Рулетка недоступна. Обновите страницу.');
-    return;
-  }
-  changeBalance(-PRERCH_COST);
-  isSpinning = true;
-  if(btn){
-    btn.disabled = true;
-    btn.textContent = 'КРУТИМ...';
-  }
-
-  track.style.transition = 'none';
-  track.style.transform = 'translateX(0)';
-  void track.offsetHeight;
-
-  track.innerHTML = '';
-  const items = [];
-  for(let i=0;i<56;i++){ items.push(generateKilowattItem()); }
-  items.forEach(it => track.appendChild(createRouletteCard(it)));
-
-  const cardBase = track.firstElementChild ? track.firstElementChild.offsetWidth : 94;
-  const cardW = cardBase + 6;
-  const cW = container.offsetWidth;
-  const targetIndex = 40 + Math.floor(Math.random()*5);
-  const offset = targetIndex * cardW + cardW/2 - cW/2;
-
-  requestAnimationFrame(()=>{
-    track.style.transition = 'transform 6.0s cubic-bezier(0.1, 0.8, 0.2, 1)';
-    track.style.transform = `translateX(-${offset}px)`;
-  });
-
-
   const endHandler = ()=>{
     track.removeEventListener('transitionend', endHandler);
     const centerX = container.getBoundingClientRect().left + container.clientWidth/2;
@@ -1718,6 +1677,7 @@ initRoulette();
 </body>
 
 </html>
+
 
 
 
