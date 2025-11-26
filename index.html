@@ -243,7 +243,7 @@
 // ===== Economy =====
 const CASE_COST = 800;           // ножевой кейс
 const KILOWATT_COST = 50;        // стоимость кейса «Киловатт»
-    const PRERCH_COST = 500;   
+const PRERCH_COST = 500;   
 const START_BALANCE = 2100;
 
 const RARITY_INFO = {
@@ -289,19 +289,19 @@ function getSkinBasePrice(skinId){
     fade: 1400,
     marblefade: 5200,
     doppler1: 1200,
-    doppler2: 1250,
+    doppler2: 1550,
     doppler3: 1250,
     doppler4: 1300,
     gammad1: 1250,
-    gammad2: 1300,
+    gammad2: 1500,
     gammad3: 1300,
     gammad4: 1350,
-    ruby: 7500,
-    sapphire: 7500,
-    blackpearl: 8200,
-    emerald: 7800,
+    ruby: 12000,
+    sapphire: 13500,
+    blackpearl: 900,
+    emerald: 15500,
     lore: 1700,
-    autotronic: 1900,
+    autotronic: 900,
   };
   return map[skinId] || 350;
 }
@@ -920,6 +920,13 @@ const KILOWATT_WEAPONS = {
     { id: 'zeus_olympus',     weaponName: 'Zeus x27',    skinName: 'Олимп' },
     { id: 'usps_jawbreaker',  weaponName: 'USP-S',       skinName: 'Зубоскал' },
   ],
+  red: [
+    { id: 'awp_chromecannon', weaponName: 'AWP',         skinName: 'Хромовая пушка' },
+    { id: 'ak_inheritance',   weaponName: 'AK-47',       skinName: 'Наследство' },
+  ],
+};
+
+    const PERCH_WEAPONS = {
   red: [
     { id: 'awp_chromecannon', weaponName: 'AWP',         skinName: 'Хромовая пушка' },
     { id: 'ak_inheritance',   weaponName: 'AK-47',       skinName: 'Наследство' },
@@ -1642,6 +1649,7 @@ initRoulette();
 </body>
 
 </html>
+
 
 
 
