@@ -1144,6 +1144,33 @@ function generateKilowattItem(){
   };
 }
 
+    function generatePREECHItem(){
+  const roll = Math.random();
+  let item;
+  if(roll < 0.65){
+    const data = randomFrom(PRERCH_WEAPONS.red);
+    item = { ...data, rarity: 'red', rarityClass: 'rarity-red', rarityLabel: 'ТАЙНОЕ' };
+  } else {
+    // 1% нож
+    return generateItem();
+  }
+
+  const wear = generateWear();
+  const stattrak = Math.random() < 0.05;
+  const id = Date.now() + Math.random();
+  const price = calcWeaponPrice(item.rarity, wear, stattrak);
+
+  return {
+    id,
+    type: 'weapon',
+    weaponId: item.id,
+    ...item,
+    wear,
+    stattrak,
+    price,
+  };
+}
+
 let inventory = JSON.parse(localStorage.getItem('cs2_knife_inv_v3')||'[]');
 inventory = Array.isArray(inventory) ? inventory.map(it => {
   const rawWear = typeof it.wear === 'number' ? it.wear : 0;
@@ -1649,6 +1676,7 @@ initRoulette();
 </body>
 
 </html>
+
 
 
 
