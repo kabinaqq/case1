@@ -938,13 +938,7 @@ const WEAPON_RENDERERS = {
 function specificWeaponSvg(key, base='#94a3b8', accent='#475569'){
   switch(key){
     case 'glock_block18':
-      return `<svg viewBox="0 0 260 100" xmlns="http://www.w3.org/2000/svg">
-        <rect x="30" y="32" width="150" height="20" rx="6" fill="${base}" />
-        <rect x="38" y="52" width="120" height="10" fill="#fff" opacity="0.15" />
-        <rect x="70" y="52" width="24" height="34" fill="${accent}" />
-        <path d="M98 52 L130 80 L100 80 Z" fill="${accent}" opacity="0.9" />
-        <rect x="138" y="36" width="28" height="8" rx="4" fill="#000" opacity="0.35" />
-      </svg>`;
+  return <img src="https://cdn.csgoskins.gg/public/uih/products/aHR0cHM6Ly9jZG4uY3Nnb3NraW5zLmdnL3B1YmxpYy9pbWFnZXMvYnVja2V0cy9lY29uL2RlZmF1bHRfZ2VuZXJhdGVkL3dlYXBvbl9nbG9ja19nbG9ja19icmlja19tb25kcmlhbl9saWdodC5jNDRlNTRjN2MzMTQ0ZTRkMmY4NDYxOGU5OGYzZDhjN2I5ZWE2NmU3LnBuZw--/auto/auto/85/notrim/db25aae3d5a5cfb97853b2c796402703.webp" width="260" height="100" />;
     case 'usps_jawbreaker':
       return `<svg viewBox="0 0 300 110" xmlns="http://www.w3.gov/2000/svg">
         <rect x="20" y="40" width="200" height="16" rx="6" fill="${base}" />
@@ -1727,4 +1721,5 @@ updateInventoryCount();
 initRoulette();
 </script>
 </body>
+
 </html>
