@@ -897,6 +897,13 @@ function getItemVisualHTML(item){
   return item.svg || renderKnife(item);
 }
 
+        const PRERCH_WEAPONS = {
+  red: [
+    { id: 'awp_chromecannon', weaponName: 'AWP',         skinName: 'Хромовая пушка' },
+    { id: 'ak_inheritance',   weaponName: 'AK-47',       skinName: 'Наследство' },
+  ],
+};
+
 // ===== Kilowatt weapons data =====
 const KILOWATT_WEAPONS = {
   blue: [
@@ -920,13 +927,6 @@ const KILOWATT_WEAPONS = {
     { id: 'zeus_olympus',     weaponName: 'Zeus x27',    skinName: 'Олимп' },
     { id: 'usps_jawbreaker',  weaponName: 'USP-S',       skinName: 'Зубоскал' },
   ],
-  red: [
-    { id: 'awp_chromecannon', weaponName: 'AWP',         skinName: 'Хромовая пушка' },
-    { id: 'ak_inheritance',   weaponName: 'AK-47',       skinName: 'Наследство' },
-  ],
-};
-
-    const PRERCH_WEAPONS = {
   red: [
     { id: 'awp_chromecannon', weaponName: 'AWP',         skinName: 'Хромовая пушка' },
     { id: 'ak_inheritance',   weaponName: 'AK-47',       skinName: 'Наследство' },
@@ -1676,6 +1676,7 @@ initRoulette();
 </body>
 
 </html>
+
 
 
 
