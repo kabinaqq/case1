@@ -105,7 +105,7 @@
         .inv-item .btn-sell-one{position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:calc(100% - 16px); height:30px; border-radius:8px; border:1px solid rgba(34,197,94,.85); background:linear-gradient(135deg, rgba(34,197,94,.35), rgba(22,163,74,.35)); color:#e0ffe8; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; display:flex; align-items:center; justify-content:center;}
         .inv-item .btn-sell-one:active{transform:translateX(-50%) scale(.97);}
         .empty-inv{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-d)}
-        .empty-inv span{font-size:42px; margin-bottom:8px}
+        .empty-inv span{font-size:45px; margin-bottom:8px}
 
         /* Modal */
         .modal{position:fixed; inset:0; background:rgba(0,0,0,.9); display:flex; align-items:center; justify-content:center; padding:20px; z-index:50; opacity:0; pointer-events:none; transition:opacity .25s}
@@ -134,14 +134,14 @@
 <body>
 <div class="app">
     <div class="header">
-        <div class="title">🔪 Симулятор Кейсов</div>
+        <div class="title"> Симулятор Кейсов</div>
         <div class="balance">
             Баланс: <span class="balance-value" id="balance">0₽</span>
         </div>
     </div>
 
     <div class="tabs">
-        <button class="tab active" onclick="showTab('case')">КЕЙС</button>
+        <button class="tab active" onclick="showTab('case')">КЕЙСЫ</button>
         <button class="tab" onclick="showTab('inventory')">ИНВЕНТАРЬ <span id="inv-count">(0)</span></button>
     </div>
 
@@ -152,9 +152,9 @@
                 <div class="case-icon">🗡️</div>
                 <div class="case-info">
                     <h2>Ножевой кейс</h2>
-                    <p class="special">★ ОСОБЫЙ ПРЕДМЕТ ★</p>
+                    <p class="special">Коллекция Ножей</p>
                 </div>
-                <div class="case-price">700₽</div>
+                <div class="case-price">800₽</div>
             </div>
 
             <div class="roulette-section">
@@ -174,6 +174,23 @@
                     <p class="kilowatt" style="color:#9ca3af; font-size:10px;">Коллекция «Киловатт»</p>
                 </div>
                 <div class="case-price">50₽</div>
+            </div>
+
+            <div class="roulette-section">
+                <div class="roulette-container" id="roulette-container-kilowatt">
+                    <div class="roulette-pointer"></div>
+                    <div class="roulette-track" id="track-kilowatt"></div>
+                </div>
+            </div>
+
+              <!-- Кейс «Перчатки» -->
+            <div class="case-header" style="margin-top:8px;">
+                <div class="case-icon">2</div>
+                <div class="case-info">
+                    <h2>Кейс «Перчатки»</h2>
+                    <p class="PRERCH" style="color:#9ca3af; font-size:10px;">Коллекция Перчаток</p>
+                </div>
+                <div class="case-price">500₽</div>
             </div>
 
             <div class="roulette-section">
@@ -222,8 +239,9 @@
 
 <script>
 // ===== Economy =====
-const CASE_COST = 700;           // ножевой кейс
+const CASE_COST = 800;           // ножевой кейс
 const KILOWATT_COST = 50;        // стоимость кейса «Киловатт»
+    const PRERCH_COST = 500;   
 const START_BALANCE = 2100;
 
 const RARITY_INFO = {
@@ -290,16 +308,16 @@ function applyWearMultiplier(base, wear){
   // wear: 0.00–1.00 в стиле CS2. Чище — дороже, убитый — дешевле.
   const w = Math.max(0, Math.min(1, typeof wear === 'number' ? wear : 0));
   let mult;
-  if(w < 0.07){ // Factory New
-    mult = 1.5;
+  if(w < 0.09){ // Factory New
+    mult = 1.6;
   } else if(w < 0.15){ // Minimal Wear
-    mult = 1.2;
+    mult = 1.4;
   } else if(w < 0.37){ // Field-Tested
-    mult = 1.0;
+    mult = 1.2;
   } else if(w < 0.44){ // Well-Worn
-    mult = 0.8;
+    mult = 1.0;
   } else { // Battle-Scarred
-    mult = 0.6;
+    mult = 0.9;
   }
   return base * mult;
 }
@@ -1622,6 +1640,8 @@ initRoulette();
 </body>
 
 </html>
+
+
 
 
 
