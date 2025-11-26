@@ -1,0 +1,1730 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Симулятор Кейсов</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root{
+            --safe-top: env(safe-area-inset-top); 
+            --safe-bottom: env(safe-area-inset-bottom);
+            --bg: #0e111a; 
+            --panel: #111625; 
+            --panel-2:#0b0f1a;
+            --header:#0a0e18;
+            --text:#e7edf3; 
+            --text-d:#8a95a6; 
+            --accent:#e6b450; 
+            --covert:#eb4b4b;
+            --gold:#f1c40f;
+            --glow: rgba(235,75,75,.35);
+        }
+        html,body{height:100%; background: radial-gradient(1200px 600px at 50% -200px, #15213a 0%, #0b0f1a 60%, #080b12 100%); color:var(--text); font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; overflow:hidden;}
+        .app{height:100%; display:flex; flex-direction:column; padding-top:var(--safe-top);}
+
+        /* Header */
+        .header{display:flex; align-items:center; justify-content:space-between; background:linear-gradient(180deg, var(--header), #0b1020); border-bottom:1px solid rgba(255,255,255,.06); padding:8px 14px;}
+        .title{font-weight:800; letter-spacing:.12em; color:#e6b450; text-transform:uppercase; font-size:12px;}
+        .balance{margin-left:auto; font-size:11px; font-weight:700; color:var(--accent); display:flex; align-items:center; gap:4px;}
+        .balance-value{font-size:12px;}
+
+        /* Tabs */
+        .tabs{display:flex; background:var(--header);} 
+        .tab{flex:1; padding:10px 0; background:none; border:none; color:var(--text-d); font-weight:700; font-size:11px; letter-spacing:.08em; border-bottom:2px solid transparent;}
+        .tab.active{color:var(--accent); border-bottom-color:var(--accent); background:rgba(230,180,80,.08)}
+
+        /* Layout content */
+        .content{flex:1; display:flex; flex-direction:column; padding:8px; gap:8px; overflow-x:hidden; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+
+        /* Case view compact */
+        .case-view{display:flex; flex-direction:column; gap:8px; flex:1;}
+        .case-header{display:flex; align-items:center; gap:10px; background:linear-gradient(180deg, var(--panel), var(--panel-2)); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:8px 10px; box-shadow:0 6px 24px rgba(0,0,0,.35);}        
+        .case-icon{width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#222a3f,#141a2b); border:1px solid rgba(255,255,255,.08); font-size:16px;}
+        .case-info h2{font-size:13px; font-weight:800;}
+        .case-info p{font-size:10px; font-weight:700; letter-spacing:.12em;}
+        .case-info p.special{color:var(--covert); letter-spacing:.15em;}
+        .case-info p.kilowatt{color:#94a3b8; letter-spacing:.08em; text-transform:uppercase;}
+        .case-price{margin-left:auto; background:linear-gradient(135deg, var(--accent), #d6a240); color:#0d0f17; font-weight:900; font-size:12px; padding:6px 10px; border-radius:8px;}
+
+        /* Roulette */
+        .roulette-section{flex:0 0 auto; background:linear-gradient(180deg, #0a0e18, #0f1422); border-radius:12px; border:1px solid rgba(255,255,255,.07); box-shadow:0 0 30px rgba(0,0,0,.45), inset 0 0 30px rgba(0,0,0,.45); position:relative; height:170px; display:flex; align-items:center;}
+        .roulette-container{position:relative; overflow:hidden; width:100%; height:100%;}
+        .roulette-track{position:absolute; top:0; left:0; height:100%; display:flex; align-items:center; gap:6px; padding:0; will-change:transform;}
+        .roulette-item{flex-shrink:0; width:94px; height:152px; background:linear-gradient(180deg, #131a2a, #0b1020 70%); border:1px solid rgba(250,204,21,.7); border-radius:10px; padding:6px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; box-shadow:0 0 16px rgba(250,204,21,.18);}        
+        .roulette-item .rarity{font-size:7px; letter-spacing:.08em; font-weight:800; text-align:center; width:100%; display:flex; align-items:center; justify-content:center; white-space:normal; color:inherit;}
+        .roulette-item .knife-img{flex:1; width:100%; display:flex; align-items:center; justify-content:center; min-height:0;}
+        .roulette-item .knife-img svg{width:100%; height:100%; max-height:80px; filter:drop-shadow(0 3px 6px rgba(0,0,0,.55));}
+        .roulette-item .knife-img img{width:100%; height:100%; max-height:80px; object-fit:contain; filter:drop-shadow(0 3px 6px rgba(0,0,0,.55));}
+        .weapon-emoji{font-size:32px; line-height:1;}
+        .roulette-item .name{font-size:9px; font-weight:800; text-align:center; line-height:1.1;}
+        .roulette-item .skin{font-size:9px; color:#f9b74e; text-align:center; line-height:1.1;}
+        .stattrak-tag{font-size:7px; font-weight:800; color:#f97316; border:1px solid rgba(248,153,31,.7); border-radius:9999px; padding:1px 4px; text-transform:uppercase; letter-spacing:.08em; margin-top:2px; margin-bottom:2px;}
+        .roulette-item.rarity-blue{border-color:#3b82f6; box-shadow:0 0 16px rgba(59,130,246,.25);} 
+        .roulette-item.rarity-purple{border-color:#a855f7; box-shadow:0 0 16px rgba(168,85,247,.25);} 
+        .roulette-item.rarity-pink{border-color:#ec4899; box-shadow:0 0 16px rgba(236,72,153,.25);} 
+        .roulette-item.rarity-red{border-color:#ef4444; box-shadow:0 0 16px rgba(239,68,68,.25);} 
+        .roulette-item.rarity-blue .rarity, .inv-item.rarity-blue .rarity{color:#60a5fa;}
+        .roulette-item.rarity-purple .rarity, .inv-item.rarity-purple .rarity{color:#c084fc;}
+        .roulette-item.rarity-pink .rarity, .inv-item.rarity-pink .rarity{color:#f472b6;}
+        .roulette-item.rarity-red .rarity, .inv-item.rarity-red .rarity{color:#f87171;}
+        .roulette-pointer{position:absolute; top:0; left:50%; transform:translateX(-50%); width:3px; height:100%; background:linear-gradient(180deg, #ffd76a, #f2b93f); box-shadow:0 0 16px rgba(255,215,106,.8); z-index:5;}
+        .roulette-pointer:before, .roulette-pointer:after{content:''; position:absolute; left:50%; transform:translateX(-50%); border-left:9px solid transparent; border-right:9px solid transparent;}
+        .roulette-pointer:before{top:0; border-top:12px solid #ffd76a}
+        .roulette-pointer:after{bottom:0; border-bottom:12px solid #ffd76a}
+
+        /* Sell All Button */
+        .inv-actions{display:none; width:100%; padding-bottom:8px; justify-content:center;}
+        .btn-sell-all{width:100%; background:linear-gradient(135deg, #22c55e, #16a34a); color:#0f172a; border:none; border-radius:10px; height:38px; font-weight:900; font-size:12px; letter-spacing:.1em; box-shadow:0 8px 20px rgba(34,197,94,.35); text-transform:uppercase; cursor:pointer;}
+        .btn-sell-all:active{transform:scale(.98);}
+
+        /* Button */
+        .btn-open{background:linear-gradient(135deg, #22c55e, #16a34a); color:#0f172a; border:none; border-radius:12px; height:44px; font-weight:900; font-size:13px; letter-spacing:.18em; box-shadow:0 10px 28px rgba(34,197,94,.3); text-transform:uppercase;}
+        .btn-open:active{transform:scale(.98)}
+        .btn-open:disabled{background:linear-gradient(135deg, #4b5563, #374151); color:#9ca3af; opacity:1; box-shadow:none}
+
+        .case-actions{margin-top:6px; display:flex; justify-content:center; gap:10px;}
+        .icon-btn{min-width:32px; height:32px; padding:0 10px; border-radius:8px; border:1px solid rgba(255,255,255,.12); background:rgba(15,23,42,.9); display:flex; align-items:center; justify-content:center; color:var(--text); font-size:11px; font-weight:700; box-shadow:0 4px 12px rgba(0,0,0,.4); text-decoration:none; letter-spacing:.04em; text-transform:uppercase;}
+        .icon-btn:active{transform:scale(.95)}
+
+        /* Inventory */
+        .inventory-view{display:none; flex-direction:column; height:100%;}
+        .inventory-view.active{display:flex}
+        .inventory-grid{flex:1; display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:8px; overflow:auto; padding-bottom:calc(8px + var(--safe-bottom)); align-content:flex-start;}
+        .inv-item{background:linear-gradient(180deg, #131a2a, #0b1020 70%); border:1px solid rgba(250,204,21,.7); border-radius:10px; padding:8px 6px 44px; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:4px; height:180px; box-shadow:0 0 16px rgba(250,204,21,.18); overflow:hidden; position:relative;}
+        .inv-item.rarity-blue{border-color:#3b82f6; box-shadow:0 0 16px rgba(59,130,246,.25);} 
+        .inv-item.rarity-purple{border-color:#a855f7; box-shadow:0 0 16px rgba(168,85,247,.25);} 
+        .inv-item.rarity-pink{border-color:#ec4899; box-shadow:0 0 16px rgba(236,72,153,.25);} 
+        .inv-item.rarity-red{border-color:#ef4444; box-shadow:0 0 16px rgba(239,68,68,.25);} 
+        .inv-item .rarity{font-size:7px; letter-spacing:.12em; font-weight:800; text-align:center; width:100%; display:flex; align-items:center; justify-content:center; white-space:normal; color:inherit;}
+        .inv-item .knife-img{width:100%; display:flex; align-items:center; justify-content:center; max-height:70px; flex:0 0 auto;}
+        .inv-item .knife-img svg{max-width:100%; max-height:100%; height:auto; width:auto; filter:drop-shadow(0 3px 6px rgba(0,0,0,.55))}
+        .inv-item .name,.inv-item .skin{font-size:9px; font-weight:800; text-align:center; max-width:100%; line-height:1.15; white-space:normal; overflow:hidden;}
+        .inv-item .skin{color:#f9b74e;}
+        .inv-item .wear{font-size:8px; color:var(--text-d); max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+        .inv-item .btn-sell-one{position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:calc(100% - 16px); height:30px; border-radius:8px; border:1px solid rgba(34,197,94,.85); background:linear-gradient(135deg, rgba(34,197,94,.35), rgba(22,163,74,.35)); color:#e0ffe8; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; display:flex; align-items:center; justify-content:center;}
+        .inv-item .btn-sell-one:active{transform:translateX(-50%) scale(.97);}
+        .empty-inv{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-d)}
+        .empty-inv span{font-size:42px; margin-bottom:8px}
+
+        /* Modal */
+        .modal{position:fixed; inset:0; background:rgba(0,0,0,.9); display:flex; align-items:center; justify-content:center; padding:20px; z-index:50; opacity:0; pointer-events:none; transition:opacity .25s}
+        .modal.show{opacity:1; pointer-events:auto}
+        .modal-content{width:100%; max-width:360px; background:linear-gradient(180deg, #12192a, #0c1222); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:18px; text-align:center; box-shadow:0 0 40px rgba(235,75,75,.18)}
+        .modal-rarity{font-size:10px; color:var(--covert); letter-spacing:.24em; font-weight:800}
+        .modal-name{font-size:18px; font-weight:900; margin:6px 0}
+        .modal-skin{font-size:13px; color:#f9b74e}
+        .modal-knife{height:130px; margin:14px 0; display:flex; align-items:center; justify-content:center}
+        .modal-knife svg{height:100%; width:auto; filter:drop-shadow(0 6px 14px rgba(0,0,0,.55))}
+        .modal-stats{background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.07); border-radius:10px; padding:12px; margin-top:10px}
+        .modal-row{display:flex; justify-content:space-between; font-size:12px; margin-bottom:8px}
+        .float-bar{height:8px; border-radius:4px; background:linear-gradient(90deg, #27ae60, #f1c40f, #e67e22, #e74c3c, #8e44ad); position:relative; margin:8px 0}
+        .float-marker{position:absolute; top:50%; transform:translate(-50%,-50%); width:14px; height:14px; border-radius:50%; background:#fff; border:3px solid #0e111a; box-shadow:0 0 10px rgba(255,255,255,.8)}
+        .btn-close{margin-top:12px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18); color:#fff; border-radius:10px; padding:10px 24px; font-weight:800;}
+
+        /* Ultra-compact on very small height */
+        @media (max-height:740px){
+            .roulette-section{height:160px}
+            .roulette-item{height:136px; width:86px}
+            .modal-knife{height:112px}
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body>
+<div class="app">
+    <div class="header">
+        <div class="title">🔪 Симулятор Кейсов</div>
+        <div class="balance">
+            Баланс: <span class="balance-value" id="balance">0₽</span>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" onclick="showTab('case')">КЕЙС</button>
+        <button class="tab" onclick="showTab('inventory')">ИНВЕНТАРЬ <span id="inv-count">(0)</span></button>
+    </div>
+
+    <div class="content">
+        <div class="case-view" id="case-view">
+            <!-- Ножевой кейс -->
+            <div class="case-header">
+                <div class="case-icon">🗡️</div>
+                <div class="case-info">
+                    <h2>Ножевой кейс</h2>
+                    <p class="special">★ ОСОБЫЙ ПРЕДМЕТ ★</p>
+                </div>
+                <div class="case-price">700₽</div>
+            </div>
+
+            <div class="roulette-section">
+                <div class="roulette-container" id="roulette-container">
+                    <div class="roulette-pointer"></div>
+                    <div class="roulette-track" id="track"></div>
+                </div>
+            </div>
+
+            <button class="btn-open" id="btn-open" onclick="spin()">ОТКРЫТЬ</button>
+
+            <!-- Кейс "Киловатт" -->
+            <div class="case-header" style="margin-top:8px;">
+                <div class="case-icon">⚡️</div>
+                <div class="case-info">
+                    <h2>Кейс «Киловатт»</h2>
+                    <p class="kilowatt" style="color:#9ca3af; font-size:10px;">Коллекция «Киловатт»</p>
+                </div>
+                <div class="case-price">50₽</div>
+            </div>
+
+            <div class="roulette-section">
+                <div class="roulette-container" id="roulette-container-kilowatt">
+                    <div class="roulette-pointer"></div>
+                    <div class="roulette-track" id="track-kilowatt"></div>
+                </div>
+            </div>
+
+            <button class="btn-open" id="btn-open-kilowatt" onclick="spinKilowatt()">ОТКРЫТЬ</button>
+
+            <div class="case-actions">
+                <button class="icon-btn" type="button" onclick="resetProgress()" title="Сброс прогресса">СБРОСИТЬ ПРОГРЕСС</button>
+                <a class="icon-btn" href="https://www.donationalerts.com/r/kabinaqq" target="_blank" rel="noopener noreferrer" title="Поддержать автора">ПОДДЕРЖАТЬ</a>
+            </div>
+        </div>
+
+        <div class="inventory-view" id="inventory-view">
+            <div class="inv-actions" id="inv-actions">
+                <button class="btn-sell-all" onclick="sellAllItems()">ПРОДАТЬ ВСЁ (<span id="sell-all-sum">0</span>₽)</button>
+            </div>
+            <div class="inventory-grid" id="inv-grid"></div>
+            <div class="empty-inv" id="empty-inv">
+                <span>📦</span>
+                <p>Инвентарь пуст</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Result modal -->
+<div class="modal" id="modal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-rarity">★ ТАЙНОЕ ★</div>
+        <div class="modal-name" id="m-name"></div>
+        <div class="modal-skin" id="m-skin"></div>
+        <div class="modal-knife" id="m-knife"></div>
+        <div class="modal-stats">
+            <div class="modal-row"><span>Износ</span> <span id="m-wear"></span></div>
+            <div class="float-bar"><div class="float-marker" id="m-marker"></div></div>
+            <div class="modal-row"><span>Цена</span> <span id="m-price"></span></div>
+        </div>
+        <button class="btn-close" onclick="closeModal()">ЗАБРАТЬ</button>
+    </div>
+</div>
+
+<script>
+// ===== Economy =====
+const CASE_COST = 700;           // ножевой кейс
+const KILOWATT_COST = 50;        // стоимость кейса «Киловатт»
+const START_BALANCE = 2100;
+
+const RARITY_INFO = {
+  gold:   { label: '★ ОСОБЫЙ ПРЕДМЕТ ★', color: '#facc15' },
+  blue:   { label: 'ОБЫЧНОЕ',            color: '#60a5fa' },
+  purple: { label: 'РЕДКОЕ',             color: '#c084fc' },
+  pink:   { label: 'ЗАСЕКРЕЧЕННОЕ',      color: '#f472b6' },
+  red:    { label: 'ТАЙНОЕ',             color: '#f87171' }
+};let balance = parseInt(localStorage.getItem('cs2_knife_balance') || START_BALANCE, 10);
+function updateBalanceView(){
+  const el = document.getElementById('balance');
+  if(el){ el.textContent = balance.toLocaleString('ru-RU') + '₽'; }
+}
+function changeBalance(delta){
+  balance += delta;
+  if(balance < 0) balance = 0;
+  localStorage.setItem('cs2_knife_balance', balance);
+  updateBalanceView();
+}
+
+function getSkinBasePrice(skinId){
+  // Упрощённый рынок: дешёвые скины 100–300, средние 300–1800, топовые 4000–8000+
+  const map = {
+    safarimesh: 110,
+    boreal: 130,
+    forestddpat: 140,
+    scorched: 150,
+    stained: 170,
+    night: 190,
+    nightstripe: 185,
+    rustcoat: 180,
+    bluesteel: 260,
+    blacklaminate: 260,
+    vanilla: 300,
+    brightwater: 340,
+    damascus: 420,
+    freehand: 450,
+    ultraviolet: 480,
+    casehardened: 520,
+    tigertooth: 4200,
+    slaughter: 3600,
+    crimsonweb: 1100,
+    fade: 1400,
+    marblefade: 5200,
+    doppler1: 1200,
+    doppler2: 1250,
+    doppler3: 1250,
+    doppler4: 1300,
+    gammad1: 1250,
+    gammad2: 1300,
+    gammad3: 1300,
+    gammad4: 1350,
+    ruby: 7500,
+    sapphire: 7500,
+    blackpearl: 8200,
+    emerald: 7800,
+    lore: 1700,
+    autotronic: 1900,
+  };
+  return map[skinId] || 350;
+}
+
+function applyWearMultiplier(base, wear){
+  // wear: 0.00–1.00 в стиле CS2. Чище — дороже, убитый — дешевле.
+  const w = Math.max(0, Math.min(1, typeof wear === 'number' ? wear : 0));
+  let mult;
+  if(w < 0.07){ // Factory New
+    mult = 1.5;
+  } else if(w < 0.15){ // Minimal Wear
+    mult = 1.2;
+  } else if(w < 0.37){ // Field-Tested
+    mult = 1.0;
+  } else if(w < 0.44){ // Well-Worn
+    mult = 0.8;
+  } else { // Battle-Scarred
+    mult = 0.6;
+  }
+  return base * mult;
+}
+
+function calcItemPrice(item){
+  const base = getSkinBasePrice(item.skinId);
+  const withWear = applyWearMultiplier(base, item.wear);
+  // Множитель за тип ножа (редкие и популярные модели дороже)
+  const knifeMultMap = {
+    karambit: 1.8,
+    butterfly: 1.75,
+    m9: 1.7,
+    bayonet: 1.55,
+    talon: 1.7,
+    skeleton: 1.6,
+    nomad: 1.45,
+    kukri: 1.35,
+    ursus: 1.3,
+    survival: 1.25,
+    huntsman: 1.2,
+    bowie: 1.15,
+    shadow: 1.15,
+    flip: 1.1,
+    stiletto: 1.1,
+    paracord: 1.0,
+    classic: 1.0,
+    gut: 0.8,
+    navaja: 0.75,
+  };
+  const km = knifeMultMap[item.knifeId] || 1.0;
+
+  // Множитель StatTrak: такие ножи ещё заметно дороже обычных
+  const stattrakMult = item.stattrak ? 1.7 : 1.0;
+
+  // Немного рандома ±10% для живости рынка
+  const jitter = 0.5 + Math.random()*0.2;
+  const price = Math.round(withWear * km * stattrakMult * jitter);
+  return Math.max(price, 100); // минимум 100
+}
+
+// ===== Data =====
+const KNIVES = [
+  { id:'bayonet',    name:'Штык-нож', w:1.0 },
+  { id:'m9',         name:'Штык-нож M9', w:0.95 },
+  { id:'bowie',      name:'Нож Боуи', w:0.9 },
+  { id:'falchion',   name:'Фальшион', w:1.05 },
+  { id:'butterfly',  name:'Нож-бабочка', w:0.85 },
+  { id:'huntsman',   name:'Охотничий нож', w:1.0 },
+  { id:'karambit',   name:'Керамбит', w:0.8 },
+  { id:'flip',       name:'Складной нож', w:1.1 },
+  { id:'gut',        name:'Нож с лезвием-крюком', w:1.1 },
+  { id:'talon',      name:'Коготь', w:0.88 },
+  { id:'stiletto',   name:'Стилет', w:0.95 },
+  { id:'navaja',     name:'Наваха', w:1.2 },
+  { id:'ursus',      name:'Медвежий Нож', w:1.1 },
+  { id:'survival',   name:'Нож выживания', w:1.1 },
+  { id:'skeleton',   name:'Скелетный нож', w:1.0 },
+  { id:'paracord',   name:'Паракорд', w:1.15 },
+  { id:'nomad',      name:'Нож Бродяга', w:1.05 },
+  { id:'kukri',      name:'Кукри', w:0.9 },
+  { id:'classic',    name:'Классический нож', w:1.0 },
+  { id:'shadow',     name:'Тычковые ножи', w:1.05 },
+];
+
+// Skins with market-like rarity (lower w = rarer)
+const SKINS = [
+  { id:'vanilla', name:'Без покрытия', w: 2.6, pattern:'vanilla' },
+  { id:'fade', name:'Градиент', w: 0.55, pattern:'fade' },
+  { id:'marblefade', name:'Мраморный градиент', w: 0.45, pattern:'marblefade' },
+
+  { id:'doppler1', name:'Волны Фаза 1', w: 0.28, pattern:'doppler1' },
+  { id:'doppler2', name:'Волны Фаза 2', w: 0.25, pattern:'doppler2' },
+  { id:'doppler3', name:'Волны Фаза 3', w: 0.27, pattern:'doppler3' },
+  { id:'doppler4', name:'Волны Фаза 4', w: 0.24, pattern:'doppler4' },
+  { id:'ruby', name:'Волны «Рубин»', w: 0.06, pattern:'ruby' },
+  { id:'sapphire', name:'Волны «Сапфир»', w: 0.06, pattern:'sapphire' },
+  { id:'blackpearl', name:'Волны «Чёрная жемчужина»', w: 0.04, pattern:'blackpearl' },
+
+  { id:'gammad1', name:'Гамма-Волны Ф1', w: 0.24, pattern:'gammad1' },
+  { id:'gammad2', name:'Гамма-Волны Ф2', w: 0.23, pattern:'gammad2' },
+  { id:'gammad3', name:'Гамма-Волны Ф3', w: 0.24, pattern:'gammad3' },
+  { id:'gammad4', name:'Гамма-Волны Ф4', w: 0.22, pattern:'gammad4' },
+  { id:'emerald', name:'Волны «Изумруд»', w: 0.05, pattern:'emerald' },
+
+  { id:'lore', name:'Легенды', w: 0.6, pattern:'lore' },
+  { id:'autotronic', name:'Автотроника', w: 0.7, pattern:'autotronic' },
+  { id:'blacklaminate', name:'Чёрный ламинат', w: 1.2, pattern:'blacklaminate' },
+  { id:'brightwater', name:'Чистая вода', w: 1.0, pattern:'brightwater' },
+  { id:'freehand', name:'Ручная Роспись', w: 1.1, pattern:'freehand' },
+  { id:'tigertooth', name:'Зуб тигра', w: 0.75, pattern:'tigertooth' },
+  { id:'ultraviolet', name:'Ультрафиолет', w: 1.0, pattern:'ultraviolet' },
+  { id:'damascus', name:'Дамасская сталь', w: 1.15, pattern:'damascus' },
+  { id:'casehardened', name:'Поверхностная закалка', w: 1.05, pattern:'casehardened' },
+  { id:'rustcoat', name:'Пыльник', w: 1.35, pattern:'rustcoat' },
+  { id:'slaughter', name:'Убийство', w: 0.85, pattern:'slaughter' },
+  { id:'crimsonweb', name:'Кровавая Паутина', w: 0.8, pattern:'crimsonweb' },
+  { id:'night', name:'Ночь', w: 1.35, pattern:'night' },
+  { id:'nightstripe', name:'Ночная Полоса', w: 1.4, pattern:'nightstripe' },
+  { id:'stained', name:'Патина', w: 1.5, pattern:'stained' },
+  { id:'bluesteel', name:'Вороненая сталь', w: 1.2, pattern:'bluesteel' },
+  { id:'scorched', name:'Сажа', w: 1.6, pattern:'scorched' },
+  { id:'forestddpat', name:'Лесной Камуфляж', w: 1.7, pattern:'forestddpat' },
+  { id:'boreal', name:'Северный лес', w: 1.65, pattern:'boreal' },
+  { id:'safarimesh', name:'Африканская Сетка', w: 1.9, pattern:'safarimesh' },
+];
+
+// ===== SVG Models (enhanced realistic silhouettes) =====
+const KNIFE_MODELS = {
+  bayonet: (p, w) => baseBayonet(p, w),
+  m9: (p, w) => baseM9(p, w),
+  bowie: (p, w) => baseBowie(p, w),
+  falchion: (p, w) => baseFalchion(p, w),
+  butterfly: (p, w) => baseButterfly(p, w),
+  huntsman: (p, w) => baseHuntsman(p, w),
+  karambit: (p, w) => baseKarambit(p, w),
+  flip: (p, w) => baseFlip(p, w),
+  gut: (p, w) => baseGut(p, w),
+  talon: (p, w) => baseTalon(p, w),
+  stiletto: (p, w) => baseStiletto(p, w),
+  navaja: (p, w) => baseNavaja(p, w),
+  ursus: (p, w) => baseUrsus(p, w),
+  survival: (p, w) => baseSurvival(p, w),
+  skeleton: (p, w) => baseSkeleton(p, w),
+  paracord: (p, w) => baseParacord(p, w),
+  nomad: (p, w) => baseNomad(p, w),
+  kukri: (p, w) => baseKukri(p, w),
+  classic: (p, w) => baseClassic(p, w),
+  shadow: (p, w) => baseShadow(p, w),
+};
+
+// ===== Patterns (texturing) =====
+// Use deterministic seed so the same item looks identical everywhere
+function patternDefs(id, seed = 0){
+  const rnd = Math.floor(Math.random()*1e6);
+  const pid = (name)=>`${name}_${rnd}`;
+  const defs = [];
+  let fill = '';
+
+  switch(id){
+    case 'vanilla':{
+      defs.push(`<linearGradient id="${pid('steel')}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#d6dde6"/>
+        <stop offset="50%" stop-color="#b8c1cc"/>
+        <stop offset="100%" stop-color="#929aa6"/>
+      </linearGradient>`);
+      fill = `url(#${pid('steel')})`;
+      break;
+    }
+    case 'fade':{
+      defs.push(`<linearGradient id="${pid('fade')}" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#f59eb6"/>
+        <stop offset="40%" stop-color="#b07cf5"/>
+        <stop offset="80%" stop-color="#4ea8de"/>
+      </linearGradient>`);
+      fill = `url(#${pid('fade')})`;
+      break;
+    }
+    case 'marblefade':{
+      defs.push(`<linearGradient id="${pid('mf1')}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#1f3d9b"/>
+        <stop offset="50%" stop-color="#d62828"/>
+        <stop offset="100%" stop-color="#f6bd2f"/>
+      </linearGradient>
+      <filter id="${pid('marble')}">
+        <feTurbulence type="turbulence" baseFrequency="0.9" numOctaves="2" seed="${seed}"/>
+        <feColorMatrix type="saturate" values="0.55"/>
+        <feBlend mode="overlay" in2="SourceGraphic"/>
+      </filter>`);
+      fill = `url(#${pid('mf1')})`;
+      break;
+    }
+    case 'ruby':{
+      defs.push(`<radialGradient id="${pid('ruby')}" cx="50%" cy="40%" r="65%">
+        <stop offset="0%" stop-color="#ff5a5a"/>
+        <stop offset="50%" stop-color="#c71f37"/>
+        <stop offset="100%" stop-color="#7a0f20"/>
+      </radialGradient>`);
+      fill = `url(#${pid('ruby')})`;
+      break;
+    }
+    case 'sapphire':{
+      defs.push(`<radialGradient id="${pid('sapp')}" cx="50%" cy="40%" r="65%">
+        <stop offset="0%" stop-color="#66a3ff"/>
+        <stop offset="50%" stop-color="#2a6bff"/>
+        <stop offset="100%" stop-color="#0f2b7a"/>
+      </radialGradient>`);
+      fill = `url(#${pid('sapp')})`;
+      break;
+    }
+    case 'emerald':{
+      defs.push(`<radialGradient id="${pid('emer')}" cx="50%" cy="40%" r="65%">
+        <stop offset="0%" stop-color="#7fffd4"/>
+        <stop offset="50%" stop-color="#14b88f"/>
+        <stop offset="100%" stop-color="#045f49"/>
+      </radialGradient>`);
+      fill = `url(#${pid('emer')})`;
+      break;
+    }
+    case 'blackpearl':{
+      defs.push(`<linearGradient id="${pid('bp')}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#311b92"/>
+        <stop offset="50%" stop-color="#6a1b9a"/>
+        <stop offset="100%" stop-color="#0b1020"/>
+      </linearGradient>`);
+      fill = `url(#${pid('bp')})`;
+      break;
+    }
+    case 'doppler1':
+    case 'doppler2':
+    case 'doppler3':
+    case 'doppler4':{
+      const colors = {
+        doppler1:['#0b132b','#1c2541','#3a506b'],
+        doppler2:['#110f2e','#5b2a86','#b42b51'],
+        doppler3:['#0b132b','#006d77','#83c5be'],
+        doppler4:['#0b132b','#1d4ed8','#38bdf8']
+      }[id];
+      defs.push(`<linearGradient id="${pid('dop')}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="${colors[0]}"/>
+        <stop offset="50%" stop-color="${colors[1]}"/>
+        <stop offset="100%" stop-color="${colors[2]}"/>
+      </linearGradient>
+      <filter id="${pid('smoke')}">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="${seed}"/>
+        <feDisplacementMap scale="12" in="SourceGraphic"/>
+      </filter>`);
+      fill = `url(#${pid('dop')})`;
+      break;
+    }
+    case 'gammad1':
+    case 'gammad2':
+    case 'gammad3':
+    case 'gammad4':{
+      const colors = {
+        gammad1:['#012d26','#057a55','#34d399'],
+        gammad2:['#01352b','#0ea5a0','#a7f3d0'],
+        gammad3:['#01352b','#0d9488','#5eead4'],
+        gammad4:['#01352b','#10b981','#99f6e4']
+      }[id];
+      defs.push(`<linearGradient id="${pid('gd')}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="${colors[0]}"/>
+        <stop offset="50%" stop-color="${colors[1]}"/>
+        <stop offset="100%" stop-color="${colors[2]}"/>
+      </linearGradient>`);
+      fill = `url(#${pid('gd')})`;
+      break;
+    }
+    case 'lore':{
+      defs.push(`<linearGradient id="${pid('lore')}" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#6b4e16"/>
+        <stop offset="100%" stop-color="#f2cc72"/>
+      </linearGradient>
+      <pattern id="${pid('celtic')}" patternUnits="userSpaceOnUse" width="12" height="12">
+        <path d="M0 6 L6 0 L12 6 L6 12 Z" fill="none" stroke="#ddbb66" stroke-width="0.6" opacity=".35"/>
+      </pattern>`);
+      fill = `url(#${pid('lore')})`;
+      break;
+    }
+    case 'autotronic':{
+      defs.push(`<linearGradient id="${pid('auto')}" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#d2d6da"/>
+        <stop offset="100%" stop-color="#9aa0a6"/>
+      </linearGradient>`);
+      fill = `url(#${pid('auto')})`;
+      break;
+    }
+    case 'blacklaminate':{
+      defs.push(`<linearGradient id="${pid('blk')}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#111827"/>
+        <stop offset="100%" stop-color="#374151"/>
+      </linearGradient>`);
+      fill = `url(#${pid('blk')})`;
+      break;
+    }
+    case 'brightwater':{
+      defs.push(`<linearGradient id="${pid('bw')}" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#1e3a8a"/>
+        <stop offset="100%" stop-color="#60a5fa"/>
+      </linearGradient>
+      <pattern id="${pid('waves')}" patternUnits="userSpaceOnUse" width="16" height="8">
+        <path d="M0 4 Q4 0 8 4 T 16 4" fill="none" stroke="#94c5ff" stroke-width="0.8" opacity=".35"/>
+      </pattern>`);
+      fill = `url(#${pid('bw')})`;
+      break;
+    }
+    case 'freehand':{
+      defs.push(`<linearGradient id="${pid('fh')}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#fafafa"/>
+        <stop offset="100%" stop-color="#d4d4d4"/>
+      </linearGradient>
+      <pattern id="${pid('scrib')}" patternUnits="userSpaceOnUse" width="14" height="14">
+        <path d="M2 4 L12 4 M4 8 L10 8 M3 11 L11 11" stroke="#7c3aed" stroke-width="1.2" opacity=".5"/>
+      </pattern>`);
+      fill = `url(#${pid('fh')})`;
+      break;
+    }
+    case 'tigertooth':{
+      defs.push(`<linearGradient id="${pid('tt')}" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#f59e0b"/>
+        <stop offset="100%" stop-color="#fbbf24"/>
+      </linearGradient>
+      <pattern id="${pid('stripes')}" patternUnits="userSpaceOnUse" width="12" height="12">
+        <path d="M0 0 L12 12 M-3 3 L9 15 M3 -3 L15 9" stroke="#2f1b0a" stroke-width="3" opacity=".7"/>
+      </pattern>`);
+      fill = `url(#${pid('tt')})`;
+      break;
+    }
+    case 'ultraviolet':{
+      defs.push(`<linearGradient id="${pid('uv')}" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#2e1065"/>
+        <stop offset="100%" stop-color="#7c3aed"/>
+      </linearGradient>`);
+      fill = `url(#${pid('uv')})`;
+      break;
+    }
+    case 'damascus':{
+      defs.push(`<linearGradient id="${pid('dm1')}" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#cfd6de"/>
+        <stop offset="100%" stop-color="#a7afb9"/>
+      </linearGradient>
+      <filter id="${pid('damascus')}">
+        <feTurbulence type="turbulence" baseFrequency="0.035" numOctaves="3" seed="${seed}"/>
+        <feColorMatrix values="0.9 0 0 0 0  0 0.9 0 0 0  0 0 0.9 0 0  0 0 0 1 0"/>
+      </filter>`);
+      fill = `url(#${pid('dm1')})`;
+      break;
+    }
+    case 'casehardened':{
+      defs.push(`<linearGradient id="${pid('ch')}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#1e3a8a"/>
+        <stop offset="50%" stop-color="#b45309"/>
+        <stop offset="100%" stop-color="#f59e0b"/>
+      </linearGradient>
+      <filter id="${pid('splotch')}">
+        <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="${seed}"/>
+        <feColorMatrix type="saturate" values="0.8"/>
+      </filter>`);
+      fill = `url(#${pid('ch')})`;
+      break;
+    }
+    case 'rustcoat':{
+      defs.push(`<linearGradient id="${pid('rc')}" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#7c3f0e"/>
+        <stop offset="100%" stop-color="#3f1d0b"/>
+      </linearGradient>`);
+      fill = `url(#${pid('rc')})`;
+      break;
+    }
+    case 'slaughter':{
+      defs.push(`<linearGradient id="${pid('sl')}" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#ffb3b3"/>
+        <stop offset="100%" stop-color="#b91c1c"/>
+      </linearGradient>`);
+      fill = `url(#${pid('sl')})`;
+      break;
+    }
+    case 'crimsonweb':{
+      defs.push(`<linearGradient id="${pid('cw')}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#8a0a16"/>
+        <stop offset="100%" stop-color="#30050a"/>
+      </linearGradient>
+      <pattern id="${pid('web')}" patternUnits="userSpaceOnUse" width="18" height="18">
+        <path d="M9 0 L9 18 M0 9 L18 9 M0 0 L18 18 M18 0 L0 18" stroke="#2a0205" stroke-width="1"/>
+      </pattern>`);
+      fill = `url(#${pid('cw')})`;
+      break;
+    }
+    case 'night':{
+      defs.push(`<linearGradient id="${pid('night')}" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#0b1020"/>
+        <stop offset="100%" stop-color="#1f2a44"/>
+      </linearGradient>`);
+      fill = `url(#${pid('night')})`;
+      break;
+    }
+    case 'nightstripe':{
+      defs.push(`<linearGradient id="${pid('ns')}" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#141a2b"/>
+        <stop offset="100%" stop-color="#26324d"/>
+      </linearGradient>
+      <pattern id="${pid('line')}" patternUnits="userSpaceOnUse" width="10" height="10">
+        <path d="M0 0 L10 10" stroke="#2d3b60" stroke-width="2"/>
+      </pattern>`);
+      fill = `url(#${pid('ns')})`;
+      break;
+    }
+    case 'stained':{
+      defs.push(`<linearGradient id="${pid('patina')}" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#9a8f87"/>
+        <stop offset="100%" stop-color="#6b625c"/>
+      </linearGradient>`);
+      fill = `url(#${pid('patina')})`;
+      break;
+    }
+    case 'bluesteel':{
+      defs.push(`<linearGradient id="${pid('bs')}" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#516072"/>
+        <stop offset="100%" stop-color="#2f3b49"/>
+      </linearGradient>`);
+      fill = `url(#${pid('bs')})`;
+      break;
+    }
+    case 'scorched':{
+      defs.push(`<linearGradient id="${pid('sc')}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#1c1917"/>
+        <stop offset="100%" stop-color="#3a322c"/>
+      </linearGradient>`);
+      fill = `url(#${pid('sc')})`;
+      break;
+    }
+    case 'forestddpat':{
+      defs.push(`<linearGradient id="${pid('fd')}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#18412b"/>
+        <stop offset="100%" stop-color="#2d6944"/>
+      </linearGradient>
+      <pattern id="${pid('cam')}" patternUnits="userSpaceOnUse" width="18" height="12">
+        <rect x="0" y="0" width="18" height="12" fill="#18412b"/>
+        <rect x="4" y="2" width="6" height="3" fill="#2d6944"/>
+        <rect x="10" y="6" width="5" height="3" fill="#0d281a"/>
+      </pattern>`);
+      fill = `url(#${pid('fd')})`;
+      break;
+    }
+    case 'boreal':{
+      defs.push(`<linearGradient id="${pid('br')}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#233d2e"/>
+        <stop offset="100%" stop-color="#2d5a3d"/>
+      </linearGradient>`);
+      fill = `url(#${pid('br')})`;
+      break;
+    }
+    case 'safarimesh':{
+      defs.push(`<linearGradient id="${pid('sm1')}" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#9f968d"/>
+        <stop offset="100%" stop-color="#c8c1b8"/>
+      </linearGradient>
+      <pattern id="${pid('mesh')}" patternUnits="userSpaceOnUse" width="8" height="8">
+        <path d="M0 0 L8 8 M8 0 L0 8" stroke="#7a736c" stroke-width="0.6" opacity=".55"/>
+      </pattern>`);
+      fill = `url(#${pid('sm1')})`;
+      break;
+    }
+    default:{
+      defs.push(`<linearGradient id="${pid('steel2')}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#d6dde6"/>
+        <stop offset="100%" stop-color="#929aa6"/>
+      </linearGradient>`);
+      fill = `url(#${pid('steel2')})`;
+    }
+  }
+  return { defs: defs.join('\n'), bladeFill: fill };
+}
+
+// ===== Wear (CS2 float 0.00–1.00) =====
+// Редкость состояний приближена к CS2: чаще всего падают FT/WW/BS, FN и MW реже.
+function generateWear(){
+  const r = Math.random();
+  let min, max;
+  if(r < 0.05){ // ~5% — Factory New
+    min = 0.00; max = 0.07;
+  } else if(r < 0.20){ // ~15% — Minimal Wear
+    min = 0.07; max = 0.15;
+  } else if(r < 0.65){ // ~45% — Field-Tested
+    min = 0.15; max = 0.37;
+  } else if(r < 0.85){ // ~20% — Well-Worn
+    min = 0.37; max = 0.44;
+  } else { // ~15% — Battle-Scarred
+    min = 0.44; max = 1.00;
+  }
+  const wear = min + Math.random()*(max-min);
+  // Храним с точностью до двух знаков после запятой, как в CS2 UI
+  return Math.max(0, Math.min(1, parseFloat(wear.toFixed(2))));
+}
+
+function getWearInfo(wear){
+  const w = Math.max(0, Math.min(1, typeof wear === 'number' ? wear : 0));
+  let name;
+  if(w < 0.07){
+    name = 'Прямо с завода'; // Factory New
+  } else if(w < 0.15){
+    name = 'Немного поношенное'; // Minimal Wear
+  } else if(w < 0.37){
+    name = 'После полевых испытаний'; // Field-Tested
+  } else if(w < 0.44){
+    name = 'Поношенное'; // Well-Worn
+  } else {
+    name = 'Закалённое в боях'; // Battle-Scarred
+  }
+  const floatStr = w.toFixed(2); // две цифры после запятой, как в игре
+  return {
+    name,
+    float: floatStr,
+    label: `${name} (${floatStr})`
+  };
+}
+
+// ===== Helpers =====
+function weightedRandom(items){
+  const total = items.reduce((s,i)=>s+i.w,0);
+  let rnd = Math.random()*total;
+  for(const it of items){ rnd -= it.w; if(rnd <= 0) return it; }
+  return items[items.length-1];
+}
+
+function generateItem(){
+  const knife = weightedRandom(KNIVES);
+  const skin = weightedRandom(SKINS);
+  const wear = generateWear();
+  // Шанс StatTrak ~5%
+  const stattrak = Math.random() < 0.05;
+  return {
+    id: Date.now()+Math.random(),
+    type: 'knife',
+    knifeId: knife.id,
+    knifeName: knife.name,
+    skinId: skin.id,
+    skinName: skin.name,
+    wear,
+    stattrak,
+    patternSeed: Math.floor(Math.random()*1e9)
+  };
+}
+
+function renderKnife(item){
+  const defs = patternDefs(item.skinId, item.patternSeed || 0);
+  const wearFloat = Math.max(0, Math.min(1, item.wear || 0));
+  // Для визуального износа используем дискретные уровни 0–10
+  const wearLevel = Math.max(0, Math.min(10, Math.round(wearFloat * 10)));
+  const base = (KNIFE_MODELS[item.knifeId] || KNIFE_MODELS.bayonet)(defs, wearLevel);
+  return base;
+}
+
+function createRouletteCard(item){
+  const div = document.createElement('div');
+  div.className = 'roulette-item';
+  if (item.rarityClass) div.classList.add(item.rarityClass);
+  div.dataset.item = encodeURIComponent(JSON.stringify(item));
+  const stattrakBadge = item.stattrak ? '<div class="stattrak-tag">STATRAK™</div>' : '';
+  const title = getItemName(item);
+  const skin = getItemSkin(item);
+  const rarityText = getItemRarityLabel(item);
+  const imgHtml = `<div class="knife-img">${getItemVisualHTML(item)}</div>`;
+
+  div.innerHTML = `
+    <div class="rarity">${rarityText}</div>
+    ${stattrakBadge}
+    ${imgHtml}
+    <div class="name">${title}</div>
+    <div class="skin">${skin}</div>
+  `;
+  return div;
+}
+
+function getItemName(item){
+  return item.type === 'weapon' ? item.weaponName : item.knifeName;
+}
+
+function getItemSkin(item){
+  return item.skinName || '';
+}
+
+function getItemRarityLabel(item){
+  if(item.type === 'weapon'){
+    const info = RARITY_INFO[item.rarity];
+    const label = item.rarityLabel || (info ? info.label : 'ОБЫЧНОЕ');
+    return `<span style="color:${info ? info.color : '#facc15'}">${label}</span>`;
+  }
+  return `<span style="color:${RARITY_INFO.gold.color}">${RARITY_INFO.gold.label}</span>`;
+}
+
+function getItemVisualHTML(item){
+  if(item.type === 'weapon'){
+    return item.svg || renderWeapon(item);
+  }
+  return item.svg || renderKnife(item);
+}
+
+// ===== Kilowatt weapons data =====
+const KILOWATT_WEAPONS = {
+  blue: [
+    { id: 'dual_hideout',   weaponName: 'Dual Berettas', skinName: 'Убежище' },
+    { id: 'mac10_lightbox', weaponName: 'MAC-10',        skinName: 'Световой корб' },
+    { id: 'nova_darksigil', weaponName: 'Nova',          skinName: 'Печать тьмы' },
+    { id: 'ssg_dezastre',   weaponName: 'SSG 08',        skinName: 'Катастрофа' },
+    { id: 'tec9_slag',      weaponName: 'Tec-9',         skinName: 'Шлак' },
+    { id: 'ump_motorized',  weaponName: 'UMP-45',        skinName: 'Мотор' },
+    { id: 'xm_irezumi',     weaponName: 'XM1014',        skinName: 'Ирэдзуми' },
+  ],
+  purple: [
+    { id: 'glock_block18',  weaponName: 'Glock-18',      skinName: 'Блок-18' },
+    { id: 'm4a4_etchlord',  weaponName: 'M4A4',          skinName: 'Мастер травли' },
+    { id: 'fiveseven_hybrid', weaponName: 'Five-SeveN',  skinName: 'Гибрид' },
+    { id: 'mp7_justsmile',  weaponName: 'MP7',           skinName: 'Улыбочка' },
+    { id: 'sawed_analog',   weaponName: 'Sawed-Off',     skinName: 'Аналоговый ввод' },
+  ],
+  pink: [
+    { id: 'm4a1s_blacklotus', weaponName: 'M4A1-S',      skinName: 'Черный лотос' },
+    { id: 'zeus_olympus',     weaponName: 'Zeus x27',    skinName: 'Олимп' },
+    { id: 'usps_jawbreaker',  weaponName: 'USP-S',       skinName: 'Зубоскал' },
+  ],
+  red: [
+    { id: 'awp_chromecannon', weaponName: 'AWP',         skinName: 'Хромовая пушка' },
+    { id: 'ak_inheritance',   weaponName: 'AK-47',       skinName: 'Наследство' },
+  ],
+};
+
+const WEAPON_VISUALS = {
+  dual_hideout:   { type:'dual',    colors:['#cdd5f5','#4c5b7c'] },
+  mac10_lightbox: { type:'smg',     colors:['#fbbf24','#4338ca'] },
+  nova_darksigil: { type:'shotgun', colors:['#94a3b8','#0f172a'] },
+  ssg_dezastre:   { type:'sniper',  colors:['#60a5fa','#1e3a8a'] },
+  tec9_slag:      { type:'pistol',  colors:['#f87171','#1f2937'] },
+  ump_motorized:  { type:'smg',     colors:['#c084fc','#312e81'] },
+  xm_irezumi:     { type:'shotgun', colors:['#f472b6','#312e81'] },
+  glock_block18:  { type:'pistol',  colors:['#facc15','#1c1917'] },
+  m4a4_etchlord:  { type:'rifle',   colors:['#f87171','#111827'] },
+  fiveseven_hybrid:{ type:'pistol', colors:['#38bdf8','#0f172a'] },
+  mp7_justsmile:  { type:'smg',     colors:['#fbbf24','#111827'] },
+  sawed_analog:   { type:'shotgun', colors:['#fcd34d','#78350f'] },
+  m4a1s_blacklotus:{ type:'rifle',  colors:['#a855f7','#111827'] },
+  zeus_olympus:   { type:'zeus',    colors:['#60a5fa','#0f172a'] },
+  usps_jawbreaker:{ type:'pistol',  colors:['#fb7185','#111827'] },
+  awp_chromecannon:{ type:'sniper', colors:['#f8fafc','#1f2937'] },
+  ak_inheritance: { type:'rifle',   colors:['#f97316','#111827'] },
+};
+const WEAPON_RENDERERS = {
+  pistol:  (base, accent, opts={}) => weaponPistolSvg(base, accent, opts),
+  dual:    (base, accent, opts={}) => weaponDualSvg(base, accent, opts),
+  smg:     (base, accent, opts={}) => weaponSmgSvg(base, accent, opts),
+  rifle:   (base, accent, opts={}) => weaponRifleSvg(base, accent, opts),
+  shotgun: (base, accent, opts={}) => weaponShotgunSvg(base, accent, opts),
+  sniper:  (base, accent, opts={}) => weaponSniperSvg(base, accent, opts),
+  zeus:    (base, accent, opts={}) => weaponZeusSvg(base, accent, opts),
+};
+
+function specificWeaponSvg(key, base='#94a3b8', accent='#475569'){
+  switch(key){
+    case 'glock_block18':
+      return `<svg viewBox="0 0 260 100" xmlns="http://www.w3.org/2000/svg">
+        <rect x="30" y="32" width="150" height="20" rx="6" fill="${base}" />
+        <rect x="38" y="52" width="120" height="10" fill="#fff" opacity="0.15" />
+        <rect x="70" y="52" width="24" height="34" fill="${accent}" />
+        <path d="M98 52 L130 80 L100 80 Z" fill="${accent}" opacity="0.9" />
+        <rect x="138" y="36" width="28" height="8" rx="4" fill="#000" opacity="0.35" />
+      </svg>`;
+    case 'usps_jawbreaker':
+      return `<svg viewBox="0 0 300 110" xmlns="http://www.w3.gov/2000/svg">
+        <rect x="20" y="40" width="200" height="16" rx="6" fill="${base}" />
+        <rect x="150" y="30" width="90" height="14" rx="7" fill="${accent}" />
+        <rect x="78" y="56" width="28" height="40" fill="${accent}" />
+        <rect x="118" y="58" width="20" height="30" fill="${accent}" opacity="0.6" />
+        <rect x="30" y="52" width="40" height="8" fill="#fff" opacity="0.2" />
+      </svg>`;
+    case 'm4a4_etchlord':
+      return `<svg viewBox="0 0 320 110" xmlns="http://www.w3.org/2000/svg">
+        <rect x="30" y="44" width="210" height="18" rx="6" fill="${base}" />
+        <rect x="120" y="32" width="70" height="12" fill="${base}" opacity="0.6" />
+        <rect x="74" y="62" width="36" height="36" fill="${accent}" />
+        <path d="M110 62 L140 90 L110 90 Z" fill="${accent}" opacity="0.8" />
+        <rect x="170" y="44" width="34" height="24" fill="#000" opacity="0.25" />
+        <path d="M240 46 L300 50 L300 58 L240 62 Z" fill="${base}" opacity="0.85" />
+      </svg>`;
+    case 'm4a1s_blacklotus':
+      return `<svg viewBox="0 0 320 110" xmlns="http://www.w3.org/2000/svg">
+        <rect x="30" y="46" width="210" height="18" rx="6" fill="${base}" />
+        <rect x="120" y="34" width="76" height="12" rx="6" fill="${base}" opacity="0.5" />
+        <rect x="70" y="64" width="34" height="34" fill="${accent}" />
+        <path d="M104 64 L134 92 L104 92 Z" fill="${accent}" opacity="0.85" />
+        <rect x="178" y="46" width="28" height="24" fill="#000" opacity="0.25" />
+        <rect x="214" y="30" width="48" height="10" rx="5" fill="#fff" opacity="0.15" />
+      </svg>`;
+    case 'ak_inheritance':
+      return `<svg viewBox="0 0 320 110" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30 56 L230 46 L280 54 L230 64 L30 56 Z" fill="${base}" />
+        <path d="M140 64 L168 100 L128 100 Z" fill="${accent}" />
+        <path d="M96 64 L124 100 L84 100 Z" fill="${accent}" opacity="0.8" />
+        <rect x="58" y="56" width="26" height="34" fill="#1f2937" opacity="0.6" />
+        <rect x="200" y="40" width="32" height="10" fill="#fff" opacity="0.2" />
+      </svg>`;
+    case 'awp_chromecannon':
+      return `<svg viewBox="0 0 360 110" xmlns="http://www.w3.org/2000/svg">
+        <rect x="20" y="52" width="250" height="14" rx="6" fill="${base}" />
+        <rect x="110" y="34" width="120" height="12" rx="6" fill="${accent}" />
+        <rect x="160" y="24" width="80" height="10" rx="5" fill="#fff" opacity="0.25" />
+        <rect x="82" y="60" width="28" height="40" fill="${accent}" />
+        <rect x="122" y="62" width="16" height="32" fill="${accent}" opacity="0.7" />
+        <path d="M270 52 L330 54 L330 64 L270 66 Z" fill="${base}" opacity="0.8" />
+      </svg>`;
+    case 'mp7_justsmile':
+      return `<svg viewBox="0 0 240 110" xmlns="http://www.w3.org/2000/svg">
+        <rect x="40" y="44" width="140" height="20" rx="6" fill="${base}" />
+        <rect x="60" y="64" width="28" height="40" fill="${accent}" />
+        <rect x="110" y="64" width="24" height="36" fill="${accent}" opacity="0.8" />
+        <rect x="150" y="44" width="30" height="24" fill="#000" opacity="0.25" />
+        <rect x="52" y="36" width="40" height="8" fill="#fff" opacity="0.15" />
+      </svg>`;
+    case 'ump_motorized':
+      return `<svg viewBox="0 0 240 110" xmlns="http://www.w3.org/2000/svg">
+        <rect x="30" y="46" width="150" height="18" rx="6" fill="${base}" />
+        <rect x="56" y="66" width="26" height="42" fill="${accent}" />
+        <rect x="106" y="66" width="22" height="40" fill="${accent}" opacity="0.8" />
+        <rect x="150" y="46" width="28" height="24" fill="#000" opacity="0.25" />
+        <rect x="40" y="36" width="42" height="8" fill="#fff" opacity="0.12" />
+      </svg>`;
+    case 'mac10_lightbox':
+      return `<svg viewBox="0 0 220 120" xmlns="http://www.w3.org/2000/svg">
+        <rect x="30" y="42" width="120" height="24" rx="6" fill="${base}" />
+        <rect x="58" y="66" width="24" height="46" fill="${accent}" />
+        <rect x="96" y="66" width="18" height="42" fill="${accent}" opacity="0.85" />
+        <path d="M150 42 L190 46 L190 62 L150 66 Z" fill="${base}" opacity="0.85" />
+        <rect x="34" y="32" width="50" height="8" fill="#fff" opacity="0.12" />
+      </svg>`;
+    case 'dual_hideout':
+      return `<svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
+        <g transform="translate(0,0)">
+          <rect x="30" y="40" width="90" height="16" rx="5" fill="${base}" />
+          <path d="M100 56 L124 98 L90 98 Z" fill="${accent}" />
+        </g>
+        <g transform="translate(55,12)">
+          <rect x="30" y="40" width="90" height="16" rx="5" fill="${base}" />
+          <path d="M100 56 L124 98 L90 98 Z" fill="${accent}" />
+        </g>
+      </svg>`;
+    case 'tec9_slag':
+      return `<svg viewBox="0 0 220 120" xmlns="http://www.w3.org/2000/svg">
+        <rect x="36" y="40" width="120" height="20" rx="6" fill="${base}" />
+        <rect x="64" y="60" width="24" height="48" fill="${accent}" />
+        <rect x="108" y="60" width="18" height="42" fill="${accent}" opacity="0.8" />
+        <circle cx="46" cy="50" r="6" fill="#fff" opacity="0.2" />
+      </svg>`;
+    case 'fiveseven_hybrid':
+      return `<svg viewBox="0 0 220 110" xmlns="http://www.w3.org/2000/svg">
+        <rect x="30" y="38" width="140" height="22" rx="6" fill="${base}" />
+        <rect x="70" y="60" width="26" height="44" fill="${accent}" />
+        <rect x="112" y="60" width="18" height="38" fill="${accent}" opacity="0.75" />
+        <rect x="36" y="32" width="52" height="8" fill="#fff" opacity="0.15" />
+      </svg>`;
+    case 'm4a4_etchlord': // already handled but keep to ensure
+      return `<svg viewBox="0 0 320 110" xmlns="http://www.w3.org/2000/svg">
+        <rect x="30" y="44" width="210" height="18" rx="6" fill="${base}" />
+        <rect x="120" y="32" width="70" height="12" fill="${base}" opacity="0.6" />
+        <rect x="74" y="62" width="36" height="36" fill="${accent}" />
+        <path d="M110 62 L140 90 L110 90 Z" fill="${accent}" opacity="0.8" />
+        <rect x="170" y="44" width="34" height="24" fill="#000" opacity="0.25" />
+        <path d="M240 46 L300 50 L300 58 L240 62 Z" fill="${base}" opacity="0.85" />
+      </svg>`;
+    case 'nova_darksigil':
+      return `<img src="https://community.fastly.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL_kYDhwixU-fORbLZsK_uSHFicyOl-pK8xG3q1lk0l4m2HmI6odXiRbwF1CJchQbEI4RK8kNPiMb-24A3W3YoX02yg2YjfpjSA/360fx360f" alt="Nova" style="width:100%;height:100%;object-fit:contain;">`;
+    case 'xm_irezumi':
+      return `<svg viewBox="0 0 280 110" xmlns="http://www.w3.org/2000/svg">
+        <rect x="30" y="48" width="200" height="16" rx="6" fill="${base}" />
+        <rect x="72" y="64" width="30" height="40" fill="${accent}" />
+        <rect x="120" y="64" width="24" height="38" fill="${accent}" opacity="0.85" />
+        <path d="M220 48 L260 52 L260 64 L220 66 Z" fill="${base}" opacity="0.8" />
+      </svg>`;
+    case 'sawed_analog':
+      return `<svg viewBox="0 0 260 110" xmlns="http://www.w3.org/2000/svg">
+        <rect x="40" y="50" width="160" height="16" rx="6" fill="${base}" />
+        <rect x="78" y="64" width="28" height="44" fill="${accent}" />
+        <path d="M110 64 L140 94 L110 94 Z" fill="${accent}" opacity="0.85" />
+        <rect x="40" y="44" width="30" height="10" fill="#fff" opacity="0.15" />
+      </svg>`;
+    case 'ssg_dezastre':
+      return `<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
+        <rect x="30" y="50" width="220" height="14" rx="6" fill="${base}" />
+        <rect x="86" y="64" width="26" height="40" fill="${accent}" />
+        <rect x="126" y="64" width="18" height="36" fill="${accent}" opacity="0.85" />
+        <rect x="140" y="36" width="70" height="12" rx="6" fill="${accent}" />
+        <circle cx="168" cy="42" r="6" fill="#fff" opacity="0.25" />
+      </svg>`;
+    case 'zeus_olympus':
+      return `<svg viewBox="0 0 220 100" xmlns="http://www.w3.org/2000/svg">
+        <rect x="40" y="40" width="120" height="28" rx="10" fill="${base}" />
+        <rect x="62" y="68" width="32" height="26" fill="${accent}" />
+        <rect x="102" y="68" width="18" height="26" fill="${accent}" opacity="0.7" />
+        <path d="M160 40 L190 54 L160 68 Z" fill="${base}" opacity="0.9" />
+        <path d="M44 32 L32 18 L70 18 L70 32 Z" fill="${accent}" />
+      </svg>`;
+    default:
+      return null;
+  }
+  return null;
+}
+
+function renderWeapon(item){
+  const key = item.weaponId || item.templateId || item.weaponCode || item.id;
+  const preset = WEAPON_VISUALS[key] || { type:'rifle', colors:['#94a3b8','#475569'] };
+  const colors = preset.colors || ['#94a3b8','#475569'];
+  const custom = specificWeaponSvg(key, colors[0], colors[1]);
+  if(custom) return custom;
+  const renderer = WEAPON_RENDERERS[preset.type] || WEAPON_RENDERERS.rifle;
+  return renderer(colors[0], colors[1], preset.opts || {});
+}
+
+function weaponPistolSvg(base='#9ca3af', accent='#1f2937', opts={}){
+  const barrel = opts.barrel || 130;
+  const gripWidth = opts.gripWidth || 38;
+  return `<svg viewBox="0 0 220 90" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="28" width="${barrel}" height="20" rx="6" fill="${base}" />
+    <rect x="28" y="46" width="${barrel-20}" height="12" fill="${accent}" opacity="0.6" />
+    <rect x="98" y="42" width="60" height="10" fill="#fff" opacity=".08" />
+    <path d="M${30+barrel-gripWidth} 48 L${30+barrel-gripWidth/2} 88 L80 88 L68 48 Z" fill="${accent}" />
+    <rect x="40" y="60" width="18" height="18" rx="4" fill="#000" opacity=".4" />
+  </svg>`;
+}
+
+function weaponDualSvg(base='#cdd5f5', accent='#475569'){
+  return `<svg viewBox="0 0 220 90" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(0,0)">
+      <rect x="20" y="24" width="90" height="16" rx="5" fill="${base}" />
+      <path d="M85 40 L105 82 L70 82 L58 40 Z" fill="${accent}" />
+    </g>
+    <g transform="translate(80,8)">
+      <rect x="20" y="24" width="90" height="16" rx="5" fill="${base}" />
+      <path d="M85 40 L105 82 L70 82 L58 40 Z" fill="${accent}" />
+    </g>
+  </svg>`;
+}
+
+function weaponSmgSvg(base='#c084fc', accent='#312e81'){
+  return `<svg viewBox="0 0 240 100" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="34" width="150" height="24" rx="6" fill="${base}" />
+    <rect x="70" y="58" width="22" height="30" fill="${accent}" />
+    <rect x="120" y="58" width="20" height="30" fill="${accent}" opacity=".8" />
+    <rect x="160" y="44" width="50" height="12" fill="#fff" opacity=".1" />
+    <path d="M40 58 L64 90 L36 90 Z" fill="${accent}" />
+  </svg>`;
+}
+
+function weaponRifleSvg(base='#94a3b8', accent='#1f2937'){
+  return `<svg viewBox="0 0 260 90" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="36" width="200" height="20" rx="6" fill="${base}" />
+    <rect x="44" y="56" width="34" height="26" fill="${accent}" />
+    <rect x="120" y="50" width="18" height="34" fill="${accent}" opacity=".85" />
+    <rect x="170" y="30" width="50" height="10" fill="#fff" opacity=".12" />
+    <path d="M210 36 L250 40 L250 52 L210 56 Z" fill="${base}" opacity=".8" />
+    <path d="M20 36 L50 20 L70 20 L70 36 Z" fill="${accent}" />
+  </svg>`;
+}
+
+function weaponShotgunSvg(base='#fcd34d', accent='#78350f'){
+  return `<svg viewBox="0 0 260 90" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="42" width="190" height="16" rx="6" fill="${base}" />
+    <rect x="60" y="58" width="26" height="26" fill="${accent}" />
+    <rect x="110" y="34" width="32" height="10" fill="#fff" opacity=".18" />
+    <path d="M210 42 L250 44 L250 56 L210 58 Z" fill="${accent}" opacity=".6" />
+    <path d="M30 42 L60 28 L60 42 Z" fill="${accent}" />
+  </svg>`;
+}
+
+function weaponSniperSvg(base='#60a5fa', accent='#1f2937'){
+  return `<svg viewBox="0 0 280 90" xmlns="http://www.w3.org/2000/svg">
+    <rect x="16" y="40" width="220" height="14" rx="5" fill="${base}" />
+    <rect x="70" y="54" width="26" height="30" fill="${accent}" />
+    <rect x="150" y="48" width="18" height="35" fill="${accent}" opacity=".85" />
+    <rect x="110" y="24" width="90" height="12" rx="6" fill="${accent}" />
+    <circle cx="130" cy="30" r="6" fill="#fff" opacity=".3" />
+    <path d="M236 40 L272 42 L272 54 L236 56 Z" fill="${base}" opacity=".8" />
+  </svg>`;
+}
+
+function weaponZeusSvg(base='#60a5fa', accent='#0f172a'){
+  return `<svg viewBox="0 0 200 90" xmlns="http://www.w3.org/2000/svg">
+    <rect x="30" y="32" width="120" height="28" rx="8" fill="${base}" />
+    <rect x="60" y="60" width="36" height="24" fill="${accent}" />
+    <rect x="100" y="60" width="22" height="24" fill="${accent}" opacity=".7" />
+    <path d="M150 32 L178 46 L150 60 Z" fill="${base}" opacity=".9" />
+    <path d="M44 32 L32 18 L70 18 L70 32 Z" fill="${accent}" />
+  </svg>`;
+}
+
+function randomFrom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function calcWeaponPrice(rarity, wear, stattrak){
+  let min, max;
+  if(rarity === 'blue'){ min = 5; max = 50; }
+  else if(rarity === 'purple'){ min = 30; max = 200; }
+  else if(rarity === 'pink'){ min = 100; max = 500; }
+  else if(rarity === 'red'){ min = 1000; max = 5000; }
+  else { min = 5; max = 50; }
+
+  const base = min + Math.random()*(max-min);
+  const withWear = applyWearMultiplier(base, wear);
+  const stattrakMult = stattrak ? 1.5 : 1.0;
+  const jitter = 0.9 + Math.random()*0.2;
+  return Math.max(1, Math.round(withWear * stattrakMult * jitter));
+}
+
+function generateKilowattItem(){
+  const roll = Math.random();
+  let item;
+  if(roll < 0.65){
+    const data = randomFrom(KILOWATT_WEAPONS.blue);
+    item = { ...data, rarity: 'blue', rarityClass: 'rarity-blue', rarityLabel: 'ОБЫЧНОЕ' };
+  } else if(roll < 0.85){
+    const data = randomFrom(KILOWATT_WEAPONS.purple);
+    item = { ...data, rarity: 'purple', rarityClass: 'rarity-purple', rarityLabel: 'РЕДКОЕ' };
+  } else if(roll < 0.95){
+    const data = randomFrom(KILOWATT_WEAPONS.pink);
+    item = { ...data, rarity: 'pink', rarityClass: 'rarity-pink', rarityLabel: 'ЗАСЕКРЕЧЕННОЕ' };
+  } else if(roll < 0.99){
+    const data = randomFrom(KILOWATT_WEAPONS.red);
+    item = { ...data, rarity: 'red', rarityClass: 'rarity-red', rarityLabel: 'ТАЙНОЕ' };
+  } else {
+    // 1% нож
+    return generateItem();
+  }
+
+  const wear = generateWear();
+  const stattrak = Math.random() < 0.05;
+  const id = Date.now() + Math.random();
+  const price = calcWeaponPrice(item.rarity, wear, stattrak);
+
+  return {
+    id,
+    type: 'weapon',
+    weaponId: item.id,
+    ...item,
+    wear,
+    stattrak,
+    price,
+  };
+}
+
+let inventory = JSON.parse(localStorage.getItem('cs2_knife_inv_v3')||'[]');
+inventory = Array.isArray(inventory) ? inventory.map(it => {
+  const rawWear = typeof it.wear === 'number' ? it.wear : 0;
+  // Если старые данные были в диапазоне 0–10, конвертируем в 0–1
+  const wear0to1 = rawWear > 1 ? rawWear / 10 : rawWear;
+  const wear = Math.max(0, Math.min(1, parseFloat(wear0to1.toFixed ? wear0to1.toFixed(2) : wear0to1)));
+  return {
+    ...it,
+    wear,
+    stattrak: !!it.stattrak,
+  };
+}) : [];
+let isSpinning = false;
+let lastSpinTimeout = null;
+
+function initRoulette(){
+  const track = document.getElementById('track');
+  track.style.transition = 'none';
+  track.style.transform = 'translateX(0)';
+  track.innerHTML = '';
+  const pre = [];
+  for(let i=0;i<24;i++){ pre.push(generateItem()); }
+  pre.forEach(it=>track.appendChild(createRouletteCard(it)));
+
+  const trackK = document.getElementById('track-kilowatt');
+  if(trackK){
+    trackK.style.transition = 'none';
+    trackK.style.transform = 'translateX(0)';
+    trackK.innerHTML = '';
+    const preK = [];
+    for(let i=0;i<24;i++){ preK.push(generateKilowattItem()); }
+    preK.forEach(it=>trackK.appendChild(createRouletteCard(it)));
+  }
+}
+
+function spin(){
+  if(isSpinning) return;
+  if(balance < CASE_COST){
+    alert('Недостаточно средств для открытия кейса.');
+    return;
+  }
+  changeBalance(-CASE_COST);
+  isSpinning = true;
+  const btn = document.getElementById('btn-open');
+  const track = document.getElementById('track');
+  const container = document.getElementById('roulette-container');
+
+  btn.disabled = true; btn.textContent = 'КРУТИМ...';
+
+  // Reset and reflow to keep consistent speed
+  track.style.transition = 'none';
+  track.style.transform = 'translateX(0)';
+  void track.offsetHeight; // force reflow
+
+  // Fill items anew
+  track.innerHTML = '';
+  const items = [];
+  for(let i=0;i<56;i++){ items.push(generateItem()); }
+  items.forEach(it => track.appendChild(createRouletteCard(it)));
+
+  // Compute target offset to land near item around index ~40-44
+  const cardW = (track.firstElementChild.offsetWidth + 6); // gap 6px
+  const cW = container.offsetWidth;
+  const targetIndex = 40 + Math.floor(Math.random()*5);
+  const offset = targetIndex * cardW + cardW/2 - cW/2;
+
+  // Animate
+  requestAnimationFrame(()=>{
+    track.style.transition = 'transform 6.0s cubic-bezier(0.1, 0.8, 0.2, 1)';
+    track.style.transform = `translateX(-${offset}px)`;
+  });
+
+  const endHandler = ()=>{
+    track.removeEventListener('transitionend', endHandler);
+    // Determine actual winner by element under the center pointer
+    const centerX = container.getBoundingClientRect().left + container.clientWidth/2;
+    let best = null; let bestDist = Infinity;
+    const cards = Array.from(track.children);
+    cards.forEach((el)=>{
+      const r = el.getBoundingClientRect();
+      const cx = r.left + r.width/2;
+      const d = Math.abs(cx - centerX);
+      if(d < bestDist){ bestDist = d; best = el; }
+    });
+
+    let winItem = null; let winSvg = null;
+    if(best){
+      try{ winItem = JSON.parse(decodeURIComponent(best.dataset.item)); }catch(e){}
+      const img = best.querySelector('.knife-img');
+      if(img){ winSvg = img.innerHTML; }
+    }
+    if(!winItem){
+      winItem = items[Math.min(Math.max(targetIndex,0), items.length-1)];
+    }
+
+    // Freeze exact SVG so it looks identical everywhere
+    if(winSvg){ winItem.svg = winSvg; }
+
+    showResult(winItem);
+    inventory.push({ ...winItem, ts: Date.now() });
+    localStorage.setItem('cs2_knife_inv_v3', JSON.stringify(inventory));
+    updateInventoryCount();
+
+    btn.disabled = false; btn.textContent = 'ОТКРЫТЬ';
+    isSpinning = false;
+  };
+  track.addEventListener('transitionend', endHandler);
+
+  // Safety fallback in case transitionend not fired
+  clearTimeout(lastSpinTimeout);
+  lastSpinTimeout = setTimeout(()=>{
+    if(!isSpinning) return;
+    endHandler();
+  }, 6500);
+}
+
+function spinKilowatt(){
+  if(isSpinning) return;
+  if(balance < KILOWATT_COST){
+    alert('Недостаточно средств для открытия кейса.');
+    return;
+  }
+  const btn = document.getElementById('btn-open-kilowatt');
+  const track = document.getElementById('track-kilowatt');
+  const container = document.getElementById('roulette-container-kilowatt');
+  if(!track || !container){
+    alert('Рулетка недоступна. Обновите страницу.');
+    return;
+  }
+  changeBalance(-KILOWATT_COST);
+  isSpinning = true;
+  if(btn){
+    btn.disabled = true;
+    btn.textContent = 'КРУТИМ...';
+  }
+
+  track.style.transition = 'none';
+  track.style.transform = 'translateX(0)';
+  void track.offsetHeight;
+
+  track.innerHTML = '';
+  const items = [];
+  for(let i=0;i<56;i++){ items.push(generateKilowattItem()); }
+  items.forEach(it => track.appendChild(createRouletteCard(it)));
+
+  const cardBase = track.firstElementChild ? track.firstElementChild.offsetWidth : 94;
+  const cardW = cardBase + 6;
+  const cW = container.offsetWidth;
+  const targetIndex = 40 + Math.floor(Math.random()*5);
+  const offset = targetIndex * cardW + cardW/2 - cW/2;
+
+  requestAnimationFrame(()=>{
+    track.style.transition = 'transform 6.0s cubic-bezier(0.1, 0.8, 0.2, 1)';
+    track.style.transform = `translateX(-${offset}px)`;
+  });
+
+  const endHandler = ()=>{
+    track.removeEventListener('transitionend', endHandler);
+    const centerX = container.getBoundingClientRect().left + container.clientWidth/2;
+    let best = null; let bestDist = Infinity;
+    const cards = Array.from(track.children);
+    cards.forEach((el)=>{
+      const r = el.getBoundingClientRect();
+      const cx = r.left + r.width/2;
+      const d = Math.abs(cx - centerX);
+      if(d < bestDist){ bestDist = d; best = el; }
+    });
+
+    let winItem = null; let winSvg = null;
+    if(best){
+      try{ winItem = JSON.parse(decodeURIComponent(best.dataset.item)); }catch(e){}
+      const img = best.querySelector('.knife-img');
+      if(img){ winSvg = img.innerHTML; }
+    }
+    if(!winItem){
+      winItem = items[Math.min(Math.max(targetIndex,0), items.length-1)];
+    }
+    if(winSvg){ winItem.svg = winSvg; }
+
+    showResult(winItem);
+    inventory.push({ ...winItem, ts: Date.now() });
+    localStorage.setItem('cs2_knife_inv_v3', JSON.stringify(inventory));
+    updateInventoryCount();
+
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = 'ОТКРЫТЬ';
+    }
+    isSpinning = false;
+  };
+  track.addEventListener('transitionend', endHandler);
+
+  clearTimeout(lastSpinTimeout);
+  lastSpinTimeout = setTimeout(()=>{
+    if(!isSpinning) return;
+    endHandler();
+  }, 6500);
+}
+
+function ensureItemPrice(item){
+  if(typeof item.price === 'number') return item.price;
+  if(item.type === 'weapon'){
+    item.price = calcWeaponPrice(item.rarity, item.wear, item.stattrak);
+  } else {
+    item.price = calcItemPrice(item);
+  }
+  return item.price;
+}
+
+function showResult(item){
+  ensureItemPrice(item);
+  const nameEl = document.getElementById('m-name');
+  const skinEl = document.getElementById('m-skin');
+  const imgWrap = document.getElementById('m-knife');
+  const rarityEl = document.querySelector('.modal-rarity');
+
+  if(nameEl) nameEl.textContent = getItemName(item);
+  if(skinEl) skinEl.textContent = getItemSkin(item);
+  if(rarityEl) rarityEl.innerHTML = getItemRarityLabel(item);
+
+  if(imgWrap){
+    imgWrap.innerHTML = getItemVisualHTML(item);
+  }
+
+  const wearInfo = getWearInfo(item.wear);
+  document.getElementById('m-wear').textContent = wearInfo.label;
+  document.getElementById('m-marker').style.left = `${Math.max(0, Math.min(1, item.wear || 0))*100}%`;
+  const priceEl = document.getElementById('m-price');
+  if(priceEl){ priceEl.textContent = item.price.toLocaleString('ru-RU') + '₽'; }
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(e){ if(!e || e.target.id==='modal'){ document.getElementById('modal').classList.remove('show'); } }
+
+function showTab(tab){
+  const tabs = document.querySelectorAll('.tab');
+  tabs[0].classList.toggle('active', tab==='case');
+  tabs[1].classList.toggle('active', tab==='inventory');
+  document.getElementById('case-view').style.display = tab==='case' ? 'flex' : 'none';
+  document.getElementById('inventory-view').classList.toggle('active', tab==='inventory');
+  if(tab==='inventory') renderInventory();
+}
+
+function sellItem(id){
+  const idx = inventory.findIndex(it => String(it.id) === String(id));
+  if(idx === -1) return;
+  const [removed] = inventory.splice(idx,1);
+  const price = Math.round((removed.price != null ? removed.price : calcItemPrice(removed)));
+  changeBalance(price);
+  localStorage.setItem('cs2_knife_inv_v3', JSON.stringify(inventory));
+  updateInventoryCount();
+  renderInventory();
+}
+
+function renderInventory(){
+  const grid = document.getElementById('inv-grid');
+  const empty = document.getElementById('empty-inv');
+  const actions = document.getElementById('inv-actions');
+  const sumEl = document.getElementById('sell-all-sum');
+
+  if(!inventory.length){
+    if(grid) grid.innerHTML = '';
+    if(empty) empty.style.display = 'flex';
+    if(actions) actions.style.display = 'none';
+    if(sumEl) sumEl.textContent = '0';
+    return;
+  }
+
+  if(empty) empty.style.display = 'none';
+  if(grid) grid.innerHTML = '';
+
+  let total = 0;
+
+  inventory.slice().reverse().forEach(it=>{
+    const priceNum = Math.round(ensureItemPrice(it));
+    total += priceNum;
+    const priceStr = priceNum.toLocaleString('ru-RU');
+    const stattrakBadge = it.stattrak ? '<div class="stattrak-tag">STATRAK™</div>' : '';
+    const rarityText = getItemRarityLabel(it);
+    const name = getItemName(it);
+    const skin = getItemSkin(it);
+    const visual = it.svg ? it.svg : getItemVisualHTML(it);
+    const wearLabel = getWearInfo(it.wear).label;
+    const div = document.createElement('div');
+    const classes = ['inv-item'];
+    if(it.type === 'weapon' && it.rarityClass){ classes.push(it.rarityClass); }
+    div.className = classes.join(' ');
+    div.innerHTML = `
+      <div class="rarity">${rarityText}</div>
+      ${stattrakBadge}
+      <div class="knife-img">${visual}</div>
+      <div class="name">${name}</div>
+      <div class="skin">${skin}</div>
+      <div class="wear">Износ: ${wearLabel}</div>
+      <div class="wear">Цена: ${priceStr}₽</div>
+      <button class="btn-sell-one" onclick="sellItem('${it.id}')">Продать</button>
+    `;
+    grid.appendChild(div);
+  });
+
+  // Сохраняем обновлённые цены
+  localStorage.setItem('cs2_knife_inv_v3', JSON.stringify(inventory));
+
+  if(actions) actions.style.display = 'flex';
+  if(sumEl) sumEl.textContent = total.toLocaleString('ru-RU');
+}
+
+function sellAllItems(){
+  if(!inventory.length) return;
+  if(!confirm('Продать все предметы в инвентаре?')) return;
+
+  let total = 0;
+  inventory.forEach(it => {
+    if(typeof it.price !== 'number'){
+      it.price = calcItemPrice(it);
+    }
+    total += Math.round(it.price);
+  });
+
+  if(total > 0){
+    changeBalance(total);
+  }
+
+  inventory = [];
+  localStorage.setItem('cs2_knife_inv_v3', JSON.stringify(inventory));
+  updateInventoryCount();
+  renderInventory();
+}
+
+function updateInventoryCount(){ document.getElementById('inv-count').textContent = `(${inventory.length})`; }
+
+function resetProgress(){
+  if(!confirm(`Сбросить прогресс? Все ножи будут удалены, а баланс вернётся к ${START_BALANCE}₽.`)) return;
+  inventory = [];
+  localStorage.removeItem('cs2_knife_inv_v3');
+  balance = START_BALANCE;
+  localStorage.setItem('cs2_knife_balance', balance);
+  updateBalanceView();
+  updateInventoryCount();
+  const grid = document.getElementById('inv-grid');
+  const empty = document.getElementById('empty-inv');
+  if(grid) grid.innerHTML = '';
+  if(empty) empty.style.display = 'flex';
+}
+
+// ====== Base SVGs (realistic style) ======
+function baseRealisticKnife(defs, type, wearLevel = 5){
+  const handleId = `handle_${type}`;
+  const wear = Math.max(0, Math.min(10, Math.round(wearLevel || 0)));
+  let bladePath = '';
+  let handlePath = '';
+  let extra = '';
+
+  if(type === 'karambit' || type === 'talon'){
+    // Изогнутый клинок с кольцом
+    bladePath = 'M130 20 Q210 0 235 45 Q245 70 228 95 Q210 112 175 112 Q145 110 125 100 Q105 90 102 78 Q110 60 130 20 Z';
+    handlePath = 'M60 80 Q35 82 28 96 Q38 118 68 118 L110 114 Q100 95 92 82 Q80 80 60 80 Z';
+    extra = '<circle cx="40" cy="100" r="11" fill="none" stroke="#374151" stroke-width="5" />';
+  } else if(type === 'shadow'){
+    // Два тычковых ножа
+    bladePath = 'M40 20 L62 14 L70 26 L60 76 L46 84 L38 70 Z';
+    const second = 'M158 20 L180 14 L188 26 L178 76 L164 84 L156 70 Z';
+    handlePath = 'M32 82 L68 82 L64 106 L36 106 Z';
+    extra = `
+      <path d="${second}" fill="${defs.bladeFill}" stroke="#0f172a" stroke-width="1.4" />
+      <path d="M152 82 L188 82 L184 106 L156 106 Z" fill="url(#${handleId})" stroke="#020617" stroke-width="1.2" />
+    `;
+  } else if(type === 'butterfly'){
+    // Вертикальный нож-бабочка
+    bladePath = 'M118 10 L130 10 L138 4 L146 18 L140 104 L128 116 L118 104 Z';
+    handlePath = 'M90 16 Q86 70 90 118 Q96 126 108 130 L112 132 Q120 130 124 126 Q128 70 124 16 Z';
+    extra = '<circle cx="124" cy="22" r="4" fill="#4b5563" stroke="#020617" stroke-width="1" />';
+  } else {
+    // Классический клинок
+    bladePath = 'M78 30 L210 20 Q232 26 244 40 Q248 52 244 64 Q232 78 210 84 L88 92 L76 34 Z';
+    handlePath = 'M18 40 L72 32 L80 86 L70 98 L20 104 Q8 96 6 76 Q6 52 18 40 Z';
+  }
+
+  // Наложение износа на клинок: царапины, потертости, ржавчина и сколы, зависящие от wear 0..10
+  let wearOverlay = '';
+  if(wear > 0){
+    const severity = wear / 10; // 0.1 .. 1.0
+
+    // Продольные царапины по всей длине клинка
+    let scratchLines = '';
+    const scratchCount = 4 + wear * 2; // 6..24 царапин
+    for(let i = 0; i < scratchCount; i++){
+      const x1 = 90 + i * 6;
+      const y1 = 26 + (i % 4) * 10;
+      const x2 = x1 - 26;
+      const y2 = y1 + 18;
+      scratchLines += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" />`;
+    }
+    const scratchOpacity = 0.12 + severity * 0.55; // 0.17..0.67 — явно видимые царапины
+    const edgeDarkOpacity = 0.15 + severity * 0.5;  // 0.2..0.65 — затемнение кромки
+    const edgeWidth = wear >= 7 ? 2.2 : 1.6;
+
+    // Сколы на режущей кромке (небольшие "зубцы")
+    let chipLines = '';
+    const chipCount = wear >= 3 ? Math.floor(wear / 2) : 0;
+    for(let i = 0; i < chipCount; i++){
+      const cx = 160 + i * 10;
+      const cy = 84;
+      const size = 2 + severity * 2;
+      chipLines += `<path d="M${cx-size} ${cy} L${cx} ${cy-size} L${cx+size} ${cy} Z" fill="#0b0f19" opacity="${0.4 + severity * 0.4}" />`;
+    }
+
+    // Потертости и матовые пятна на плоскости клинка
+    let dirtPatches = '';
+    const patchCount = wear >= 2 ? 2 + Math.floor(wear / 2) : 0;
+    for(let i = 0; i < patchCount; i++){
+      const cx = 140 + i * 9;
+      const cy = 42 + (i % 3) * 12;
+      const rx = 3 + severity * 3;
+      const ry = 1.8 + severity * 2.5;
+      dirtPatches += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#111827" opacity="${0.18 + severity * 0.4}" />`;
+    }
+
+    // Ржавчина для сильно поношенных клинков
+    let rustPatches = '';
+    if(wear >= 7){
+      const rustCount = 1 + (wear - 7); // от 1 до 4 пятен
+      for(let i = 0; i < rustCount; i++){
+        const cx = 150 + i * 10;
+        const cy = 34 + (i % 2) * 10;
+        const r = 2.2 + severity * 2.5;
+        rustPatches += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#7c2d12" opacity="${0.35 + severity * 0.4}" />`;
+      }
+    }
+
+    // Глубокие раковины / "дырки" для износа 9–10
+    let holePits = '';
+    if(wear >= 9){
+      const holeCount = wear - 8; // 1 для 9, 2 для 10
+      for(let i = 0; i < holeCount; i++){
+        const cx = 190 + i * 8;
+        const cy = 54 + i * 4;
+        const rOuter = 3.5 + severity * 2;
+        const rInner = rOuter - 1;
+        holePits += `
+          <circle cx="${cx}" cy="${cy}" r="${rOuter}" fill="#020617" opacity="0.9" />
+          <circle cx="${cx}" cy="${cy}" r="${rInner}" fill="#111827" opacity="0.7" />
+        `;
+      }
+    }
+
+    wearOverlay = `
+      <g stroke="#020617" stroke-width="1.1" stroke-linecap="round" opacity="${scratchOpacity}">
+        ${scratchLines}
+      </g>
+      <path d="${bladePath}" fill="none" stroke="#000000" stroke-width="${edgeWidth}" opacity="${edgeDarkOpacity}"/>
+      ${chipLines}
+      ${dirtPatches}
+      ${rustPatches}
+      ${holePits}
+    `;
+  }
+
+  return `
+  <svg viewBox="0 0 260 130" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      ${defs.defs}
+      <linearGradient id="${handleId}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#111827"/>
+        <stop offset="40%" stop-color="#1f2937"/>
+        <stop offset="100%" stop-color="#020617"/>
+      </linearGradient>
+    </defs>
+    <g>
+      <path d="${bladePath}" fill="${defs.bladeFill}" stroke="#020617" stroke-width="1.6"/>
+      <path d="${handlePath}" fill="url(#${handleId})" stroke="#020617" stroke-width="1.6"/>
+      ${extra}
+      ${wearOverlay}
+    </g>
+  </svg>`;
+}
+
+function baseBayonet(defs, wear){ return baseRealisticKnife(defs,'bayonet', wear); }
+function baseM9(defs, wear){ return baseRealisticKnife(defs,'m9', wear); }
+function baseBowie(defs, wear){ return baseRealisticKnife(defs,'bowie', wear); }
+function baseFalchion(defs, wear){ return baseRealisticKnife(defs,'falchion', wear); }
+function baseButterfly(defs, wear){ return baseRealisticKnife(defs,'butterfly', wear); }
+function baseHuntsman(defs, wear){ return baseRealisticKnife(defs,'huntsman', wear); }
+function baseKarambit(defs, wear){ return baseRealisticKnife(defs,'karambit', wear); }
+function baseFlip(defs, wear){ return baseRealisticKnife(defs,'flip', wear); }
+function baseGut(defs, wear){ return baseRealisticKnife(defs,'gut', wear); }
+function baseTalon(defs, wear){ return baseRealisticKnife(defs,'talon', wear); }
+function baseStiletto(defs, wear){ return baseRealisticKnife(defs,'stiletto', wear); }
+function baseNavaja(defs, wear){ return baseRealisticKnife(defs,'navaja', wear); }
+function baseUrsus(defs, wear){ return baseRealisticKnife(defs,'ursus', wear); }
+function baseSurvival(defs, wear){ return baseRealisticKnife(defs,'survival', wear); }
+function baseSkeleton(defs, wear){ return baseRealisticKnife(defs,'skeleton', wear); }
+function baseParacord(defs, wear){ return baseRealisticKnife(defs,'paracord', wear); }
+function baseNomad(defs, wear){ return baseRealisticKnife(defs,'nomad', wear); }
+function baseKukri(defs, wear){ return baseRealisticKnife(defs,'kukri', wear); }
+function baseClassic(defs, wear){ return baseRealisticKnife(defs,'classic', wear); }
+function baseShadow(defs, wear){ return baseRealisticKnife(defs,'shadow', wear); }
+
+// ===== Init =====
+updateBalanceView();
+updateInventoryCount();
+initRoulette();
+</script>
+</body>
+</html>
