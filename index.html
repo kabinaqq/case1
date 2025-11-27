@@ -1644,7 +1644,7 @@ function baseClassic(defs, wear){ return baseRealisticKnife(defs,'classic', wear
 function baseShadow(defs, wear){ return baseRealisticKnife(defs,'shadow', wear); }
 
     // ===== ЛОГИКА ТЕСТОВОГО КЕЙСА =====
-const TEST_COST = 10; // Цена
+const TEST_COST = 25; // Цена
 
 // 2 предмета для теста
 const TEST_ITEMS = [
@@ -1681,7 +1681,7 @@ function generateTestItem() {
 function spinTest() {
     if(isSpinning) return;
     if(balance < TEST_COST){
-        alert('Недостаточно средств (нужно 10₽).');
+        alert('Недостаточно средств (нужно 25₽).');
         return;
     }
     
@@ -1760,6 +1760,7 @@ initRoulette();
 </body>
 
 </html>
+
 
 
 
