@@ -235,7 +235,12 @@
             <div class="float-bar"><div class="float-marker" id="m-marker"></div></div>
             <div class="modal-row"><span>Цена</span> <span id="m-price"></span></div>
         </div>
-        <button class="btn-close" onclick="closeModal()">ЗАБРАТЬ</button>
+        
+        <!-- Новые кнопки -->
+        <div class="modal-actions">
+            <button class="btn-sell-modal" id="m-btn-sell" onclick="sellCurrentItem()">ПРОДАТЬ</button>
+            <button class="btn-close" onclick="closeModal()">ЗАБРАТЬ</button>
+        </div>
     </div>
 </div>
 
@@ -253,6 +258,7 @@ const RARITY_INFO = {
   pink:   { label: 'ЗАСЕКРЕЧЕННОЕ',      color: '#f472b6' },
   red:    { label: 'ТАЙНОЕ',             color: '#f87171' }
 };let balance = parseInt(localStorage.getItem('cs2_knife_balance') || START_BALANCE, 10);
+    let currentWinItem = null; // Хранит текущий выпавший предмет
 function updateBalanceView(){
   const el = document.getElementById('balance');
   if(el){ el.textContent = balance.toLocaleString('ru-RU') + '₽'; }
@@ -1382,18 +1388,60 @@ function ensureItemPrice(item){
 
 function showResult(item){
   ensureItemPrice(item);
+  currentWinItem = item; // Запоминаем предмет
+
   const nameEl = document.getElementById('m-name');
   const skinEl = document.getElementById('m-skin');
   const imgWrap = document.getElementById('m-knife');
   const rarityEl = document.querySelector('.modal-rarity');
+  const sellBtn = document.getElementById('m-btn-sell'); // Кнопка продажи
 
   if(nameEl) nameEl.textContent = getItemName(item);
   if(skinEl) skinEl.textContent = getItemSkin(item);
   if(rarityEl) rarityEl.innerHTML = getItemRarityLabel(item);
 
+  // Обновляем текст кнопки продажи с ценой
+  if(sellBtn) {
+      sellBtn.textContent = `ПРОДАТЬ (+${item.price.toLocaleString('ru-RU')}₽)`;
+  }
+
   if(imgWrap){
     imgWrap.innerHTML = getItemVisualHTML(item);
   }
+
+  const wearInfo = getWearInfo(item.wear);
+  document.getElementById('m-wear').textContent = wearInfo.label;
+  document.getElementById('m-marker').style.left = `${Math.max(0, Math.min(1, item.wear || 0))*100}%`;
+  const priceEl = document.getElementById('m-price');
+  if(priceEl){ priceEl.textContent = item.price.toLocaleString('ru-RU') + '₽'; }
+  document.getElementById('modal').classList.add('show');
+}
+
+// Новая функция для продажи прямо из модалки
+function sellCurrentItem() {
+    if (!currentWinItem) return;
+    
+    // 1. Добавляем деньги
+    changeBalance(currentWinItem.price);
+
+    // 2. Удаляем предмет из инвентаря (он был добавлен туда при остановке рулетки)
+    // Ищем его по ID
+    const index = inventory.findIndex(it => it.id === currentWinItem.id);
+    if (index !== -1) {
+        inventory.splice(index, 1);
+        localStorage.setItem('cs2_knife_inv_v3', JSON.stringify(inventory));
+        updateInventoryCount();
+        
+        // Если вкладка инвентаря открыта прямо сейчас - обновляем её
+        const invView = document.getElementById('inventory-view');
+        if(invView && invView.classList.contains('active')) {
+            renderInventory();
+        }
+    }
+
+    // 3. Закрываем окно
+    closeModal();
+}
 
   const wearInfo = getWearInfo(item.wear);
   document.getElementById('m-wear').textContent = wearInfo.label;
@@ -1676,6 +1724,7 @@ initRoulette();
 </body>
 
 </html>
+
 
 
 
