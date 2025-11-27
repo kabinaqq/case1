@@ -1703,12 +1703,13 @@ function spinTest() {
 
     track.innerHTML = '';
     const items = [];
-    for(let i=0; i<50; i++){ items.push(generateTestItem()); }
+    for(let i=0; i<56; i++){ items.push(generateTestItem()); }
     items.forEach(it => track.appendChild(createRouletteCard(it)));
 
     // 3. Вычисляем сдвиг
-    const cardW = 50; // Примерная ширина карточки + отступ (94+6)
-    const targetIndex = 35 + Math.floor(Math.random() * 5);
+    const firstCard = track.firstElementChild;
+    const cardW = firstCard ? firstCard.offsetWidth + 6 : 100;
+     const targetIndex = 40 + Math.floor(Math.random() * 5);
     const offset = targetIndex * cardW + cardW/2 - container.offsetWidth/2;
 
     // 4. Анимация
@@ -1760,6 +1761,7 @@ initRoulette();
 </body>
 
 </html>
+
 
 
 
