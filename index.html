@@ -185,23 +185,24 @@
 
               <button class="btn-open" id="btn-open-kilowatt" onclick="spinKilowatt()">ОТКРЫТЬ</button>
 
-              <!-- Кейс «Перчатки» -->
+                    <!-- Тестовый Кейс -->
             <div class="case-header" style="margin-top:8px;">
-                <div class="case-icon">2</div>
+                <div class="case-icon">🧪</div> <!-- Иконка пробирки -->
                 <div class="case-info">
-                    <h2>Кейс «Перчатки»</h2>
-                    <p class="PRERCH" style="color:#9ca3af; font-size:10px;">Коллекция Перчаток</p>
+                    <h2>Тестовый Кейс</h2>
+                    <p style="color:#9ca3af; font-size:10px;">2 Предмета</p>
                 </div>
-                <div class="case-price">500₽</div>
+                <div class="case-price">10₽</div>
             </div>
 
             <div class="roulette-section">
-                <div class="roulette-container" id="roulette-container-kilowatt">
+                <div class="roulette-container" id="roulette-container-test">
                     <div class="roulette-pointer"></div>
-                    <div class="roulette-track" id="track-kilowatt"></div>
+                    <div class="roulette-track" id="track-test"></div>
                 </div>
             </div>
 
+            <button class="btn-open" id="btn-open-test" onclick="spinTest()">ОТКРЫТЬ</button>
             <button class="btn-open" id="btn-open-PRERCH" onclick="spinPRERCH()">ОТКРЫТЬ</button>
 
             <div class="case-actions">
@@ -1161,6 +1162,15 @@ function initRoulette(){
   for(let i=0;i<24;i++){ pre.push(generateItem()); }
   pre.forEach(it=>track.appendChild(createRouletteCard(it)));
 
+      // Добавить внутрь initRoulette():
+  const trackTest = document.getElementById('track-test');
+  if(trackTest){
+    trackTest.style.transition = 'none';
+    trackTest.style.transform = 'translateX(0)';
+    trackTest.innerHTML = '';
+    for(let i=0; i<20; i++){ trackTest.appendChild(createRouletteCard(generateTestItem())); }
+  }
+
   const trackK = document.getElementById('track-kilowatt');
   if(trackK){
     trackK.style.transition = 'none';
@@ -1634,6 +1644,115 @@ function baseKukri(defs, wear){ return baseRealisticKnife(defs,'kukri', wear); }
 function baseClassic(defs, wear){ return baseRealisticKnife(defs,'classic', wear); }
 function baseShadow(defs, wear){ return baseRealisticKnife(defs,'shadow', wear); }
 
+    // ===== ЛОГИКА ТЕСТОВОГО КЕЙСА =====
+const TEST_COST = 10; // Цена
+
+// 2 предмета для теста
+const TEST_ITEMS = [
+    { id: 'test_ak', name: 'AK-47', skin: 'Test Blue', rarity: 'blue', rarityClass: 'rarity-blue', rarityLabel: 'ОБЫЧНОЕ', type: 'weapon' },
+    { id: 'test_awp', name: 'AWP', skin: 'Test Red', rarity: 'red', rarityClass: 'rarity-red', rarityLabel: 'ТАЙНОЕ', type: 'weapon' }
+];
+
+function generateTestItem() {
+    // Шанс 50/50
+    const template = Math.random() < 0.5 ? TEST_ITEMS[0] : TEST_ITEMS[1];
+    
+    const wear = generateWear();
+    const stattrak = Math.random() < 0.05; // 5%
+    // Простая цена: 10р за синее, 100р за красное
+    const basePrice = template.rarity === 'blue' ? 10 : 100;
+    const price = Math.round(basePrice * (stattrak ? 1.5 : 1));
+
+    return {
+        id: Date.now() + Math.random(),
+        type: 'weapon',
+        weaponName: template.name,
+        skinName: template.skin,
+        rarity: template.rarity,
+        rarityClass: template.rarityClass,
+        rarityLabel: template.rarityLabel,
+        wear,
+        stattrak,
+        price,
+        // Используем стандартные иконки или заглушку
+        weaponId: template.id === 'test_ak' ? 'ak_inheritance' : 'awp_chromecannon' 
+    };
+}
+
+function spinTest() {
+    if(isSpinning) return;
+    if(balance < TEST_COST){
+        alert('Недостаточно средств (нужно 10₽).');
+        return;
+    }
+    
+    // 1. Списываем баланс
+    changeBalance(-TEST_COST);
+    isSpinning = true;
+    
+    const btn = document.getElementById('btn-open-test');
+    const track = document.getElementById('track-test');
+    const container = document.getElementById('roulette-container-test');
+
+    btn.disabled = true; 
+    btn.textContent = 'КРУТИМ...';
+
+    // 2. Подготовка трека
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(0)';
+    void track.offsetHeight;
+
+    track.innerHTML = '';
+    const items = [];
+    for(let i=0; i<50; i++){ items.push(generateTestItem()); }
+    items.forEach(it => track.appendChild(createRouletteCard(it)));
+
+    // 3. Вычисляем сдвиг
+    const cardW = 100; // Примерная ширина карточки + отступ (94+6)
+    const targetIndex = 35 + Math.floor(Math.random() * 5);
+    const offset = targetIndex * cardW + cardW/2 - container.offsetWidth/2;
+
+    // 4. Анимация
+    requestAnimationFrame(()=>{
+        track.style.transition = 'transform 6.0s cubic-bezier(0.1, 0.8, 0.2, 1)';
+        track.style.transform = `translateX(-${offset}px)`;
+    });
+
+    // 5. Финал
+    const endHandler = () => {
+        track.removeEventListener('transitionend', endHandler);
+        
+        // Находим победителя по центру
+        const centerX = container.getBoundingClientRect().left + container.clientWidth/2;
+        let best = null; let bestDist = Infinity;
+        Array.from(track.children).forEach(el => {
+            const r = el.getBoundingClientRect();
+            const dist = Math.abs((r.left + r.width/2) - centerX);
+            if(dist < bestDist) { bestDist = dist; best = el; }
+        });
+
+        let winItem = items[targetIndex]; // Фолбек
+        if(best) {
+            try { winItem = JSON.parse(decodeURIComponent(best.dataset.item)); } catch(e){}
+            // Сохраняем SVG иконку
+            const img = best.querySelector('.knife-img');
+            if(img) winItem.svg = img.innerHTML;
+        }
+
+        // Показываем и сохраняем
+        showResult(winItem);
+        inventory.push({ ...winItem, ts: Date.now() });
+        localStorage.setItem('cs2_knife_inv_v3', JSON.stringify(inventory));
+        updateInventoryCount();
+
+        btn.disabled = false; 
+        btn.textContent = 'ОТКРЫТЬ';
+        isSpinning = false;
+    };
+    
+    track.addEventListener('transitionend', endHandler);
+}
+
 // ===== Init =====
 updateBalanceView();
 updateInventoryCount();
@@ -1642,6 +1761,7 @@ initRoulette();
 </body>
 
 </html>
+
 
 
 
