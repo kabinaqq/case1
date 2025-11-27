@@ -1149,8 +1149,12 @@ inventory = Array.isArray(inventory) ? inventory.map(it => {
     stattrak: !!it.stattrak,
   };
 }) : [];
-let isSpinning = false;
-let lastSpinTimeout = null;
+// Состояние прокрутки для каждого кейса отдельно
+const spinStates = {
+    knife: false,
+    kilowatt: false,
+    test: false
+};
 
 function initRoulette(){
   const track = document.getElementById('track');
@@ -1182,37 +1186,39 @@ function initRoulette(){
 }
 
 function spin(){
-  if(isSpinning) return;
+  // Проверяем только состояние ножевого кейса
+  if(spinStates.knife) return;
+  
   if(balance < CASE_COST){
     alert('Недостаточно средств для открытия кейса.');
     return;
   }
   changeBalance(-CASE_COST);
-  isSpinning = true;
+  
+  // Блокируем этот кейс
+  spinStates.knife = true;
+  
   const btn = document.getElementById('btn-open');
   const track = document.getElementById('track');
   const container = document.getElementById('roulette-container');
 
-  btn.disabled = true; btn.textContent = 'КРУТИМ...';
+  btn.disabled = true; 
+  btn.textContent = 'КРУТИМ...';
 
-  // Reset and reflow to keep consistent speed
   track.style.transition = 'none';
   track.style.transform = 'translateX(0)';
-  void track.offsetHeight; // force reflow
+  void track.offsetHeight; 
 
-  // Fill items anew
   track.innerHTML = '';
   const items = [];
   for(let i=0;i<56;i++){ items.push(generateItem()); }
   items.forEach(it => track.appendChild(createRouletteCard(it)));
 
-  // Compute target offset to land near item around index ~40-44
-  const cardW = (track.firstElementChild.offsetWidth + 6); // gap 6px
+  const cardW = (track.firstElementChild.offsetWidth + 6); 
   const cW = container.offsetWidth;
   const targetIndex = 40 + Math.floor(Math.random()*5);
   const offset = targetIndex * cardW + cardW/2 - cW/2;
 
-  // Animate
   requestAnimationFrame(()=>{
     track.style.transition = 'transform 6.0s cubic-bezier(0.1, 0.8, 0.2, 1)';
     track.style.transform = `translateX(-${offset}px)`;
@@ -1220,7 +1226,7 @@ function spin(){
 
   const endHandler = ()=>{
     track.removeEventListener('transitionend', endHandler);
-    // Determine actual winner by element under the center pointer
+    
     const centerX = container.getBoundingClientRect().left + container.clientWidth/2;
     let best = null; let bestDist = Infinity;
     const cards = Array.from(track.children);
@@ -1241,7 +1247,6 @@ function spin(){
       winItem = items[Math.min(Math.max(targetIndex,0), items.length-1)];
     }
 
-    // Freeze exact SVG so it looks identical everywhere
     if(winSvg){ winItem.svg = winSvg; }
 
     showResult(winItem);
@@ -1249,21 +1254,25 @@ function spin(){
     localStorage.setItem('cs2_knife_inv_v3', JSON.stringify(inventory));
     updateInventoryCount();
 
-    btn.disabled = false; btn.textContent = 'ОТКРЫТЬ';
-    isSpinning = false;
+    btn.disabled = false; 
+    btn.textContent = 'ОТКРЫТЬ';
+    
+    // Разблокируем кейс
+    spinStates.knife = false;
   };
+  
   track.addEventListener('transitionend', endHandler);
 
-  // Safety fallback in case transitionend not fired
-  clearTimeout(lastSpinTimeout);
-  lastSpinTimeout = setTimeout(()=>{
-    if(!isSpinning) return;
-    endHandler();
+  // Локальный таймер страховки (вместо глобального)
+  setTimeout(()=>{
+    if(spinStates.knife) endHandler();
   }, 6500);
 }
 
 function spinKilowatt(){
-  if(isSpinning) return;
+  // Проверяем состояние киловатта
+  if(spinStates.kilowatt) return;
+
   if(balance < KILOWATT_COST){
     alert('Недостаточно средств для открытия кейса.');
     return;
@@ -1271,12 +1280,14 @@ function spinKilowatt(){
   const btn = document.getElementById('btn-open-kilowatt');
   const track = document.getElementById('track-kilowatt');
   const container = document.getElementById('roulette-container-kilowatt');
-  if(!track || !container){
-    alert('Рулетка недоступна. Обновите страницу.');
-    return;
-  }
+  
+  if(!track || !container) return;
+
   changeBalance(-KILOWATT_COST);
-  isSpinning = true;
+  
+  // Блокируем киловатт
+  spinStates.kilowatt = true;
+  
   if(btn){
     btn.disabled = true;
     btn.textContent = 'КРУТИМ...';
@@ -1334,14 +1345,14 @@ function spinKilowatt(){
       btn.disabled = false;
       btn.textContent = 'ОТКРЫТЬ';
     }
-    isSpinning = false;
+    
+    // Разблокируем киловатт
+    spinStates.kilowatt = false;
   };
   track.addEventListener('transitionend', endHandler);
 
-  clearTimeout(lastSpinTimeout);
-  lastSpinTimeout = setTimeout(()=>{
-    if(!isSpinning) return;
-    endHandler();
+  setTimeout(()=>{
+    if(spinStates.kilowatt) endHandler();
   }, 6500);
 }
 
@@ -1678,79 +1689,90 @@ function generateTestItem() {
     };
 }
 
-function spinTest() {
-    if(isSpinning) return;
-    if(balance < TEST_COST){
-        alert('Недостаточно средств (нужно 30₽).');
-        return;
-    }
-    
-    // 1. Списываем баланс
-    changeBalance(-TEST_COST);
-    isSpinning = true;
-    
-    const btn = document.getElementById('btn-open-test');
-    const track = document.getElementById('track-test');
-    const container = document.getElementById('roulette-container-test');
+function spinTest(){
+  // Проверяем тест
+  if(spinStates.test) return;
 
-    btn.disabled = true; 
+  if(balance < TEST_CASE_COST){
+    alert('Недостаточно средств для открытия кейса.');
+    return;
+  }
+  const btn = document.getElementById('btn-open-test');
+  const track = document.getElementById('track-test');
+  const container = document.getElementById('roulette-container-test');
+  if(!track || !container) return;
+
+  changeBalance(-TEST_CASE_COST);
+  
+  // Блокируем тест
+  spinStates.test = true;
+  
+  if(btn){
+    btn.disabled = true;
     btn.textContent = 'КРУТИМ...';
+  }
 
-    // 2. Подготовка трека
-    track.style.transition = 'none';
-    track.style.transform = 'translateX(0)';
-    void track.offsetHeight;
+  track.style.transition = 'none';
+  track.style.transform = 'translateX(0)';
+  void track.offsetHeight;
 
-    track.innerHTML = '';
-    const items = [];
-    for(let i=0; i<56; i++){ items.push(generateTestItem()); }
-    items.forEach(it => track.appendChild(createRouletteCard(it)));
+  track.innerHTML = '';
+  const items = [];
+  for(let i=0;i<56;i++){ items.push(generateTestItem()); }
+  items.forEach(it => track.appendChild(createRouletteCard(it)));
 
-    // 3. Вычисляем сдвиг
-    const firstCard = track.firstElementChild;
-    const cardW = firstCard ? firstCard.offsetWidth + 6 : 100;
-     const targetIndex = 40 + Math.floor(Math.random() * 5);
-    const offset = targetIndex * cardW + cardW/2 - container.offsetWidth/2;
+  const cardBase = track.firstElementChild ? track.firstElementChild.offsetWidth : 94;
+  const cardW = cardBase + 6;
+  const cW = container.offsetWidth;
+  const targetIndex = 40 + Math.floor(Math.random()*5);
+  const offset = targetIndex * cardW + cardW/2 - cW/2;
 
-    // 4. Анимация
-    requestAnimationFrame(()=>{
-        track.style.transition = 'transform 6.0s cubic-bezier(0.1, 0.8, 0.2, 1)';
-        track.style.transform = `translateX(-${offset}px)`;
+  requestAnimationFrame(()=>{
+    track.style.transition = 'transform 6.0s cubic-bezier(0.1, 0.8, 0.2, 1)';
+    track.style.transform = `translateX(-${offset}px)`;
+  });
+
+  const endHandler = ()=>{
+    track.removeEventListener('transitionend', endHandler);
+    const centerX = container.getBoundingClientRect().left + container.clientWidth/2;
+    let best = null; let bestDist = Infinity;
+    const cards = Array.from(track.children);
+    cards.forEach((el)=>{
+      const r = el.getBoundingClientRect();
+      const cx = r.left + r.width/2;
+      const d = Math.abs(cx - centerX);
+      if(d < bestDist){ bestDist = d; best = el; }
     });
 
-    // 5. Финал
-    const endHandler = () => {
-        track.removeEventListener('transitionend', endHandler);
-        
-        // Находим победителя по центру
-        const centerX = container.getBoundingClientRect().left + container.clientWidth/2;
-        let best = null; let bestDist = Infinity;
-        Array.from(track.children).forEach(el => {
-            const r = el.getBoundingClientRect();
-            const dist = Math.abs((r.left + r.width/2) - centerX);
-            if(dist < bestDist) { bestDist = dist; best = el; }
-        });
+    let winItem = null; let winSvg = null;
+    if(best){
+      try{ winItem = JSON.parse(decodeURIComponent(best.dataset.item)); }catch(e){}
+      const img = best.querySelector('.knife-img');
+      if(img){ winSvg = img.innerHTML; }
+    }
+    if(!winItem){
+      winItem = items[Math.min(Math.max(targetIndex,0), items.length-1)];
+    }
+    if(winSvg){ winItem.svg = winSvg; }
 
-        let winItem = items[targetIndex]; // Фолбек
-        if(best) {
-            try { winItem = JSON.parse(decodeURIComponent(best.dataset.item)); } catch(e){}
-            // Сохраняем SVG иконку
-            const img = best.querySelector('.knife-img');
-            if(img) winItem.svg = img.innerHTML;
-        }
+    showResult(winItem);
+    inventory.push({ ...winItem, ts: Date.now() });
+    localStorage.setItem('cs2_knife_inv_v3', JSON.stringify(inventory));
+    updateInventoryCount();
 
-        // Показываем и сохраняем
-        showResult(winItem);
-        inventory.push({ ...winItem, ts: Date.now() });
-        localStorage.setItem('cs2_knife_inv_v3', JSON.stringify(inventory));
-        updateInventoryCount();
-
-        btn.disabled = false; 
-        btn.textContent = 'ОТКРЫТЬ';
-        isSpinning = false;
-    };
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = 'ОТКРЫТЬ';
+    }
     
-    track.addEventListener('transitionend', endHandler);
+    // Разблокируем тест
+    spinStates.test = false;
+  };
+  track.addEventListener('transitionend', endHandler);
+
+  setTimeout(()=>{
+    if(spinStates.test) endHandler();
+  }, 6500);
 }
 
 // ===== Init =====
@@ -1761,6 +1783,7 @@ initRoulette();
 </body>
 
 </html>
+
 
 
 
