@@ -183,8 +183,6 @@
                 </div>
             </div>
 
-           <button class="btn-open" id="btn-open-kilowatt" onclick="spinKilowatt()">ОТКРЫТЬ</button>
-
               <!-- Кейс «Перчатки» -->
             <div class="case-header" style="margin-top:8px;">
                 <div class="case-icon">2</div>
@@ -202,7 +200,7 @@
                 </div>
             </div>
 
-            <button class="btn-open" id="btn-open-PRERCH" onclick="spinPRERCH()">ОТКРЫТЬ</button>
+            <button class="btn-open" id="btn-open-kilowatt" onclick="spinKilowatt()">ОТКРЫТЬ</button>
 
             <div class="case-actions">
                 <button class="icon-btn" type="button" onclick="resetProgress()" title="Сброс прогресса">СБРОСИТЬ ПРОГРЕСС</button>
@@ -235,12 +233,7 @@
             <div class="float-bar"><div class="float-marker" id="m-marker"></div></div>
             <div class="modal-row"><span>Цена</span> <span id="m-price"></span></div>
         </div>
-        
-        <!-- Новые кнопки -->
-        <div class="modal-actions">
-            <button class="btn-sell-modal" id="m-btn-sell" onclick="sellCurrentItem()">ПРОДАТЬ</button>
-            <button class="btn-close" onclick="closeModal()">ЗАБРАТЬ</button>
-        </div>
+        <button class="btn-close" onclick="closeModal()">ЗАБРАТЬ</button>
     </div>
 </div>
 
@@ -248,7 +241,7 @@
 // ===== Economy =====
 const CASE_COST = 800;           // ножевой кейс
 const KILOWATT_COST = 50;        // стоимость кейса «Киловатт»
-const PRERCH_COST = 500;   
+    const PRERCH_COST = 500;   
 const START_BALANCE = 2100;
 
 const RARITY_INFO = {
@@ -258,7 +251,6 @@ const RARITY_INFO = {
   pink:   { label: 'ЗАСЕКРЕЧЕННОЕ',      color: '#f472b6' },
   red:    { label: 'ТАЙНОЕ',             color: '#f87171' }
 };let balance = parseInt(localStorage.getItem('cs2_knife_balance') || START_BALANCE, 10);
-    let currentWinItem = null; // Хранит текущий выпавший предмет
 function updateBalanceView(){
   const el = document.getElementById('balance');
   if(el){ el.textContent = balance.toLocaleString('ru-RU') + '₽'; }
@@ -295,19 +287,19 @@ function getSkinBasePrice(skinId){
     fade: 1400,
     marblefade: 5200,
     doppler1: 1200,
-    doppler2: 1550,
+    doppler2: 1250,
     doppler3: 1250,
     doppler4: 1300,
     gammad1: 1250,
-    gammad2: 1500,
+    gammad2: 1300,
     gammad3: 1300,
     gammad4: 1350,
-    ruby: 12000,
-    sapphire: 13500,
-    blackpearl: 900,
-    emerald: 15500,
+    ruby: 7500,
+    sapphire: 7500,
+    blackpearl: 8200,
+    emerald: 7800,
     lore: 1700,
-    autotronic: 900,
+    autotronic: 1900,
   };
   return map[skinId] || 350;
 }
@@ -903,13 +895,6 @@ function getItemVisualHTML(item){
   return item.svg || renderKnife(item);
 }
 
-        const PRERCH_WEAPONS = {
-  red: [
-    { id: 'awp_chromecannon', weaponName: 'AWP',         skinName: 'Хромовая пушка' },
-    { id: 'ak_inheritance',   weaponName: 'AK-47',       skinName: 'Наследство' },
-  ],
-};
-
 // ===== Kilowatt weapons data =====
 const KILOWATT_WEAPONS = {
   blue: [
@@ -1150,33 +1135,6 @@ function generateKilowattItem(){
   };
 }
 
-    function generatePREECHItem(){
-  const roll = Math.random();
-  let item;
-  if(roll < 0.65){
-    const data = randomFrom(PRERCH_WEAPONS.red);
-    item = { ...data, rarity: 'red', rarityClass: 'rarity-red', rarityLabel: 'ТАЙНОЕ' };
-  } else {
-    // 1% нож
-    return generateItem();
-  }
-
-  const wear = generateWear();
-  const stattrak = Math.random() < 0.05;
-  const id = Date.now() + Math.random();
-  const price = calcWeaponPrice(item.rarity, wear, stattrak);
-
-  return {
-    id,
-    type: 'weapon',
-    weaponId: item.id,
-    ...item,
-    wear,
-    stattrak,
-    price,
-  };
-}
-
 let inventory = JSON.parse(localStorage.getItem('cs2_knife_inv_v3')||'[]');
 inventory = Array.isArray(inventory) ? inventory.map(it => {
   const rawWear = typeof it.wear === 'number' ? it.wear : 0;
@@ -1388,60 +1346,18 @@ function ensureItemPrice(item){
 
 function showResult(item){
   ensureItemPrice(item);
-  currentWinItem = item; // Запоминаем предмет
-
   const nameEl = document.getElementById('m-name');
   const skinEl = document.getElementById('m-skin');
   const imgWrap = document.getElementById('m-knife');
   const rarityEl = document.querySelector('.modal-rarity');
-  const sellBtn = document.getElementById('m-btn-sell'); // Кнопка продажи
 
   if(nameEl) nameEl.textContent = getItemName(item);
   if(skinEl) skinEl.textContent = getItemSkin(item);
   if(rarityEl) rarityEl.innerHTML = getItemRarityLabel(item);
 
-  // Обновляем текст кнопки продажи с ценой
-  if(sellBtn) {
-      sellBtn.textContent = `ПРОДАТЬ (+${item.price.toLocaleString('ru-RU')}₽)`;
-  }
-
   if(imgWrap){
     imgWrap.innerHTML = getItemVisualHTML(item);
   }
-
-  const wearInfo = getWearInfo(item.wear);
-  document.getElementById('m-wear').textContent = wearInfo.label;
-  document.getElementById('m-marker').style.left = `${Math.max(0, Math.min(1, item.wear || 0))*100}%`;
-  const priceEl = document.getElementById('m-price');
-  if(priceEl){ priceEl.textContent = item.price.toLocaleString('ru-RU') + '₽'; }
-  document.getElementById('modal').classList.add('show');
-}
-
-// Новая функция для продажи прямо из модалки
-function sellCurrentItem() {
-    if (!currentWinItem) return;
-    
-    // 1. Добавляем деньги
-    changeBalance(currentWinItem.price);
-
-    // 2. Удаляем предмет из инвентаря (он был добавлен туда при остановке рулетки)
-    // Ищем его по ID
-    const index = inventory.findIndex(it => it.id === currentWinItem.id);
-    if (index !== -1) {
-        inventory.splice(index, 1);
-        localStorage.setItem('cs2_knife_inv_v3', JSON.stringify(inventory));
-        updateInventoryCount();
-        
-        // Если вкладка инвентаря открыта прямо сейчас - обновляем её
-        const invView = document.getElementById('inventory-view');
-        if(invView && invView.classList.contains('active')) {
-            renderInventory();
-        }
-    }
-
-    // 3. Закрываем окно
-    closeModal();
-}
 
   const wearInfo = getWearInfo(item.wear);
   document.getElementById('m-wear').textContent = wearInfo.label;
@@ -1724,18 +1640,6 @@ initRoulette();
 </body>
 
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
