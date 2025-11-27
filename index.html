@@ -1106,10 +1106,10 @@ function generateKilowattItem(){
   let item;
   if(roll < 0.65){
     const data = randomFrom(KILOWATT_WEAPONS.blue);
-    item = { ...data, rarity: 'blue', rarityClass: 'rarity-blue', rarityLabel: 'ОБЫЧНОЕ' };
+    item = { ...data, rarity: 'blue', rarityClass: 'rarity-blue', rarityLabel: 'АРМЕЙСКОЕ' };
   } else if(roll < 0.85){
     const data = randomFrom(KILOWATT_WEAPONS.purple);
-    item = { ...data, rarity: 'purple', rarityClass: 'rarity-purple', rarityLabel: 'РЕДКОЕ' };
+    item = { ...data, rarity: 'purple', rarityClass: 'rarity-purple', rarityLabel: 'ЗАПРЕЩЁННОЕ' };
   } else if(roll < 0.95){
     const data = randomFrom(KILOWATT_WEAPONS.pink);
     item = { ...data, rarity: 'pink', rarityClass: 'rarity-pink', rarityLabel: 'ЗАСЕКРЕЧЕННОЕ' };
@@ -1783,6 +1783,7 @@ initRoulette();
 </body>
 
 </html>
+
 
 
 
