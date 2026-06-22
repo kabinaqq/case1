@@ -104,16 +104,27 @@
       border: 1px solid var(--border);
     }
     .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
     }
     .stat-item {
       background: var(--hover);
       border-radius: var(--radius-sm);
-      padding: 14px 10px;
+      padding: 12px 18px;
       text-align: center;
       font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 0.95rem;
+    }
+    .stat-item span {
+      font-size: 1.1rem;
+      font-weight: 600;
     }
     .calendar-header {
       display: flex;
@@ -239,9 +250,11 @@
 <div class="app-container" id="app">
   <div class="top-bar">
     <span class="app-title">📅 Календарь Настроения</span>
-    <button class="settings-btn" id="settingsBtn">⚙️ Настройки</button>
+    <button class="settings-btn" id="settingsBtn">Настройки</button>
   </div>
-  <div class="card"><div class="stats-grid" id="statsContainer"></div></div>
+  <div class="card">
+    <div class="stats-grid" id="statsContainer"></div>
+  </div>
   <div class="card">
     <div class="calendar-header">
       <div class="month-year" id="monthYearDisplay"></div>
@@ -264,7 +277,6 @@
   </div>
 </div>
 
-<!-- Модальное окно настроения -->
 <div class="modal" id="moodModal">
   <div class="modal-content">
     <button class="modal-close" id="modalCloseBtn">✕</button>
@@ -284,11 +296,10 @@
   </div>
 </div>
 
-<!-- Модальное окно настроек -->
 <div class="modal" id="settingsModal">
   <div class="modal-content">
     <button class="modal-close" id="settingsCloseBtn">✕</button>
-    <h3>⚙️ Настройки</h3>
+    <h3>Настройки</h3>
     <div class="settings-row">
       <span>Тема оформления</span>
       <select id="themeSelect" style="padding:8px; border-radius:12px; background:var(--hover); color:var(--text); border:1px solid var(--border);">
@@ -316,7 +327,7 @@
     function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(moodData)); }
 
     let currentDate = new Date();
-    let userTimezoneOffset = parseInt(localStorage.getItem('mood_tz_offset') || '180'); // Москва UTC+3 = 180 мин
+    let userTimezoneOffset = parseInt(localStorage.getItem('mood_tz_offset') || '180');
 
     const CATEGORIES = ['Работа','Учеба','Отношения','Семья','Здоровье','Финансы','Друзья','Отдых','Спорт','Питание','Погода','Сон','Хобби','Путешествия','Другое'];
     const moodMap = {
@@ -510,8 +521,8 @@
       const fill=Math.round((entries.length/days)*100);
       const avg=getDisplayAvg(moods)||'—';
       document.getElementById('statsContainer').innerHTML=`
-        <div class="stat-item">📅 Среднее за месяц <br><span style="color:${avg!=='—'?getSmoothColor(parseFloat(avg)):'gray'};font-size:1.2rem;">${avg}</span></div>
-        <div class="stat-item">📋 Заполнено <br><span style="font-size:1.2rem;">${entries.length}/${days} (${fill}%)</span></div>`;
+        <div class="stat-item">📅 Среднее за месяц <span style="color:${avg!=='—'?getSmoothColor(parseFloat(avg)):'gray'}">${avg}</span></div>
+        <div class="stat-item">📋 Заполнено <span>${entries.length}/${days} (${fill}%)</span></div>`;
       drawLineChart();
       const bad={};
       Object.values(moodData).forEach(e=>{ if(e.mood&&e.mood<=2&&e.categories) e.categories.forEach(c=>bad[c]=(bad[c]||0)+1); });
