@@ -349,7 +349,7 @@
       font-weight: 500;
     }
     .chart-wrapper {
-      padding: 0 4px;
+      margin: 0 -8px;
     }
     canvas {
       width: 100%;
@@ -398,7 +398,7 @@
   <div class="card">
     <h3 style="margin-bottom:12px;">📈 Детальная аналитика</h3>
     <div class="chart-wrapper">
-      <canvas id="moodChart" height="130"></canvas>
+      <canvas id="moodChart" height="140"></canvas>
     </div>
     <div class="analytics-detail" id="topBadReasonsContainer">
       <strong>Основные причины плохих дней:</strong> <span id="topBadReasons">—</span>
@@ -478,6 +478,31 @@
       if (!moodsArray.length) return null;
       const sum = moodsArray.reduce((s, m) => s + m + 1, 0);
       return (sum / moodsArray.length).toFixed(1);
+    }
+
+    // ---------- Плавный цвет от красного к зелёному (с уклоном к зелёному) ----------
+    function getSmoothColor(value) {
+      // value от 2.0 до 5.0
+      // Смещаем ближе к зелёному: используем нелинейное преобразование
+      const t = (value - 2) / 3; // 0 = красный, 1 = зелёный
+      // Применяем easing для смещения к зелёному
+      const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+      
+      const r = Math.round(255 * (1 - eased));
+      const g = Math.round(255 * eased);
+      const b = 0;
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    function getAvgBgColor(value) {
+      if (value === null) return 'var(--hover)';
+      const num = parseFloat(value);
+      const t = (num - 2) / 3;
+      const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+      const r = Math.round(255 * (1 - eased));
+      const g = Math.round(255 * eased);
+      const b = 0;
+      return `rgba(${r}, ${g}, ${b}, 0.2)`;
     }
 
     // ---------- Тема ----------
@@ -580,10 +605,12 @@
         avgDiv.textContent = avgDisplay !== null ? avgDisplay : '·';
         if (avgDisplay !== null) {
           const num = parseFloat(avgDisplay);
-          if (num >= 4.5) avgDiv.style.background = 'var(--mood-green-soft)';
-          else if (num >= 3.5) avgDiv.style.background = 'var(--mood-yellow-soft)';
-          else if (num >= 2.5) avgDiv.style.background = 'var(--mood-orange-soft)';
-          else avgDiv.style.background = 'var(--mood-red-soft)';
+          avgDiv.style.background = getAvgBgColor(num);
+          avgDiv.style.color = getSmoothColor(num);
+          avgDiv.style.fontWeight = '700';
+        } else {
+          avgDiv.style.color = 'var(--text)';
+          avgDiv.style.fontWeight = '600';
         }
         weekRow.appendChild(avgDiv);
         grid.appendChild(weekRow);
@@ -686,7 +713,7 @@
       const monthAvg = getDisplayAvg(monthMoods) || '—';
 
       document.getElementById('statsContainer').innerHTML = `
-        <div class="stat-item">📅 Среднее за месяц <br><span style="color:${getAvgColorDisplay(monthAvg)}; font-size:1.2rem;">${monthAvg}</span></div>
+        <div class="stat-item">📅 Среднее за месяц <br><span style="color:${monthAvg !== '—' ? getSmoothColor(parseFloat(monthAvg)) : 'gray'}; font-size:1.2rem;">${monthAvg}</span></div>
         <div class="stat-item">📋 Заполнено <br><span style="font-size:1.2rem;">${monthEntries.length}/${daysInMonth} (${fillPercent}%)</span></div>
       `;
 
@@ -694,23 +721,14 @@
       findTopBadReasons();
     }
 
-    function getAvgColorDisplay(val) {
-      if (val === '—') return 'gray';
-      const n = parseFloat(val);
-      if (n >= 4.5) return 'var(--mood-green)';
-      if (n >= 3.5) return 'var(--mood-yellow)';
-      if (n >= 2.5) return 'var(--mood-orange)';
-      return 'var(--mood-red)';
-    }
-
-    // ---------- График ----------
+    // ---------- График (шире по горизонтали, плавные линии без точек) ----------
     function drawLineChart() {
       const canvas = document.getElementById('moodChart');
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
       const dpr = window.devicePixelRatio || 1;
       const width = canvas.clientWidth || 400;
-      const height = 130;
+      const height = 140;
       
       canvas.width = width * dpr;
       canvas.height = height * dpr;
@@ -734,11 +752,13 @@
         allDays.push({ day: d, mood: moodData[key]?.mood || null });
       }
 
-      const padding = { left: 48, right: 48, top: 20, bottom: 32 };
+      // Уменьшаем отступы слева и справа для более широкого графика
+      const padding = { left: 40, right: 16, top: 20, bottom: 30 };
       const chartW = width - padding.left - padding.right;
       const chartH = height - padding.top - padding.bottom;
 
-      ctx.font = '16px Inter, sans-serif';
+      // Сетка — эмодзи настроения
+      ctx.font = '15px Inter, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
       const emojis = ['', '😞', '😕', '🙂', '😄'];
@@ -755,48 +775,48 @@
         ctx.setLineDash([]);
         
         ctx.fillStyle = textColor;
-        ctx.fillText(emojis[internalVal], 8, y);
+        ctx.fillText(emojis[internalVal], 2, y);
       }
 
-      if (allDays.length > 0) {
+      // Плавная линия (без точек) с использованием кривых Безье
+      const validPoints = [];
+      allDays.forEach((item, i) => {
+        if (item.mood !== null) {
+          const x = padding.left + (i / (daysInMonth - 1)) * chartW;
+          const y = padding.top + chartH - ((item.mood - 1) / 3) * chartH;
+          validPoints.push({ x, y });
+        }
+      });
+
+      if (validPoints.length >= 2) {
         ctx.beginPath();
         ctx.strokeStyle = '#3b82f6';
         ctx.lineWidth = 2.5;
         ctx.setLineDash([]);
-        let first = true;
-        allDays.forEach((item, i) => {
-          if (item.mood === null) { first = true; return; }
-          const x = padding.left + (i / (daysInMonth - 1)) * chartW;
-          const internalVal = item.mood;
-          const y = padding.top + chartH - ((internalVal - 1) / 3) * chartH;
-          if (first) { ctx.moveTo(x, y); first = false; }
-          else ctx.lineTo(x, y);
-        });
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        ctx.moveTo(validPoints[0].x, validPoints[0].y);
+        
+        // Используем квадратичные кривые для плавности
+        for (let i = 0; i < validPoints.length - 1; i++) {
+          const xc = (validPoints[i].x + validPoints[i + 1].x) / 2;
+          const yc = (validPoints[i].y + validPoints[i + 1].y) / 2;
+          ctx.quadraticCurveTo(validPoints[i].x, validPoints[i].y, xc, yc);
+        }
+        ctx.lineTo(validPoints[validPoints.length - 1].x, validPoints[validPoints.length - 1].y);
         ctx.stroke();
-
-        allDays.forEach((item, i) => {
-          if (item.mood === null) return;
-          const x = padding.left + (i / (daysInMonth - 1)) * chartW;
-          const internalVal = item.mood;
-          const y = padding.top + chartH - ((internalVal - 1) / 3) * chartH;
-          ctx.beginPath();
-          ctx.arc(x, y, 3, 0, 2 * Math.PI);
-          ctx.fillStyle = '#3b82f6';
-          ctx.fill();
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-        });
       }
 
+      // Подписи
       ctx.fillStyle = textColor;
       ctx.font = 'bold 11px Inter, system-ui, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'bottom';
-      ctx.fillText('Начало месяца', 4, height - 4);
+      ctx.fillText('Начало месяца', 2, height - 2);
       
       ctx.textAlign = 'right';
-      ctx.fillText('Конец месяца', width - 4, height - 4);
+      ctx.fillText('Конец месяца', width - 2, height - 2);
     }
 
     function findTopBadReasons() {
