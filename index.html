@@ -221,9 +221,43 @@
       font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);
       padding: 4px 8px; border-radius: 12px;
     }
-    .mood-selector { display: flex; justify-content: space-around; margin: 18px 0; }
-    .mood-option { font-size: 2.2rem; padding: 8px; border-radius: 18px; cursor: pointer; opacity: 0.65; }
-    .mood-option.selected { opacity: 1; transform: scale(1.2); background: var(--hover); }
+    .mood-selector {
+      display: flex;
+      justify-content: space-around;
+      margin: 18px 0;
+      gap: 10px;
+    }
+    .mood-option {
+      font-size: 2.2rem;
+      padding: 14px 16px;
+      border-radius: 18px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid transparent;
+    }
+    .mood-option:hover {
+      opacity: 0.9;
+      transform: scale(1.05);
+    }
+    .mood-option.selected {
+      opacity: 1;
+      transform: scale(1.12);
+      border-color: rgba(0,0,0,0.2);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    body.dark .mood-option.selected {
+      border-color: rgba(255,255,255,0.3);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .mood-option[data-mood="1"] { background: var(--mood-red-soft); }
+    .mood-option[data-mood="2"] { background: var(--mood-orange-soft); }
+    .mood-option[data-mood="3"] { background: var(--mood-yellow-soft); }
+    .mood-option[data-mood="4"] { background: var(--mood-green-soft); }
+
     textarea, input, select {
       width: 100%; padding: 12px; border-radius: 14px; border: 1px solid var(--border);
       background: var(--bg); color: var(--text); margin: 8px 0; font-family: inherit;
@@ -353,7 +387,6 @@
 
     let currentDate = new Date();
 
-    // Автоопределение часового пояса
     let timezoneMode = localStorage.getItem('mood_tz_mode') || 'auto';
     let userTimezoneOffset;
 
