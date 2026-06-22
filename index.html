@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>Mood Calendar · Трекер настроения</title>
+  <title>Календарь Настроения</title>
   <style>
     * {
       margin: 0;
@@ -80,6 +80,12 @@
       gap: 12px;
     }
 
+    .app-title {
+      font-weight: 650;
+      font-size: 1.4rem;
+      white-space: nowrap;
+    }
+
     .theme-toggle {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -93,6 +99,8 @@
       gap: 6px;
       transition: all var(--transition);
       box-shadow: var(--shadow);
+      font-size: 0.9rem;
+      white-space: nowrap;
     }
 
     .card {
@@ -106,7 +114,7 @@
 
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 12px;
     }
 
@@ -259,6 +267,25 @@
       box-shadow: 0 20px 35px rgba(0,0,0,0.3);
       max-height: 90vh;
       overflow-y: auto;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+      padding: 4px 8px;
+      border-radius: 12px;
+      line-height: 1;
+      transition: all 0.2s;
+    }
+    .modal-close:hover {
+      background: var(--hover);
+      color: var(--text);
     }
     .mood-selector {
       display: flex;
@@ -329,7 +356,7 @@
 <body>
 <div class="app-container" id="app">
   <div class="top-bar">
-    <h2 style="font-weight:650;">Календарь Настроения</h2>
+    <span class="app-title">😊 Календарь Настроения</span>
     <button class="theme-toggle" id="themeToggle">Тема: Авто</button>
   </div>
 
@@ -363,6 +390,7 @@
 
 <div class="modal" id="moodModal">
   <div class="modal-content">
+    <button class="modal-close" id="modalCloseBtn">✕</button>
     <h3 id="modalDate"></h3>
     <div class="mood-selector" id="moodSelector">
       <span data-mood="1" class="mood-option">😞</span>
@@ -409,8 +437,18 @@
       4: { emoji: '😄', bgClass: 'mood-green', displayValue: 5 }
     };
 
+    const monthNames = [
+      'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+      'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+    ];
+
     function formatDateKey(year, month, day) {
       return `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    }
+
+    function formatDateDisplay(dateKey) {
+      const [y, m, d] = dateKey.split('-');
+      return `${parseInt(d)} ${monthNames[parseInt(m)-1]}`;
     }
 
     function getTodayKey() {
@@ -442,8 +480,8 @@
 
     function updateThemeButton(mode) {
       if (mode === 'auto') themeToggle.innerHTML = 'Тема: Авто';
-      else if (mode === 'light') themeToggle.innerHTML = '☀️ Светлая';
-      else themeToggle.innerHTML = '🌙 Тёмная';
+      else if (mode === 'light') themeToggle.innerHTML = 'Тема: Светлая';
+      else themeToggle.innerHTML = 'Тема: Тёмная';
     }
 
     themeToggle.addEventListener('click', () => {
@@ -544,7 +582,7 @@
 
     function openModal(dateKey) {
       currentModalDate = dateKey;
-      document.getElementById('modalDate').textContent = `📅 ${dateKey}`;
+      document.getElementById('modalDate').textContent = `📅 ${formatDateDisplay(dateKey)}`;
       const entry = moodData[dateKey] || {};
       selectedMood = entry.mood || null;
       noteText.value = entry.note || '';
@@ -553,6 +591,12 @@
       renderCategoryChips();
       modal.classList.add('active');
     }
+
+    function closeModal() {
+      modal.classList.remove('active');
+    }
+
+    document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
 
     function renderMoodSelector() {
       document.querySelectorAll('#moodSelector .mood-option').forEach(opt => {
@@ -595,7 +639,7 @@
         updatedAt: now
       };
       saveData();
-      modal.classList.remove('active');
+      closeModal();
       renderCalendar();
     });
 
@@ -603,14 +647,14 @@
       if (currentModalDate && moodData[currentModalDate]) {
         delete moodData[currentModalDate];
         saveData();
-        modal.classList.remove('active');
+        closeModal();
         renderCalendar();
       }
     });
 
-    window.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
+    window.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-    // ---------- Статистика ----------
+    // ---------- Статистика (только месяц и заполнено) ----------
     function updateStatsAndAnalytics() {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
@@ -622,27 +666,10 @@
       const monthMoods = monthEntries.map(e => e.mood);
       const fillPercent = Math.round((monthEntries.length / daysInMonth)*100);
       const monthAvg = getDisplayAvg(monthMoods) || '—';
-      
-      const last7 = [];
-      for (let i=6; i>=0; i--) {
-        const d = new Date(); d.setDate(d.getDate()-i);
-        const e = moodData[formatDateKey(d.getFullYear(), d.getMonth(), d.getDate())];
-        if (e?.mood) last7.push(e.mood);
-      }
-      const weekAvg = getDisplayAvg(last7) || '—';
-      
-      let streak = 0;
-      const today = new Date();
-      for (let i=0; i<365; i++) {
-        const d = new Date(today); d.setDate(d.getDate()-i);
-        if (moodData[formatDateKey(d.getFullYear(), d.getMonth(), d.getDate())]?.mood) streak++; else break;
-      }
 
       document.getElementById('statsContainer').innerHTML = `
-        <div class="stat-item">📆 Неделя <br><span style="color:${getAvgColorDisplay(weekAvg)}">${weekAvg}</span></div>
-        <div class="stat-item">📅 Месяц <br><span style="color:${getAvgColorDisplay(monthAvg)}">${monthAvg}</span></div>
-        <div class="stat-item">📋 Заполнено <br>${monthEntries.length}/${daysInMonth} (${fillPercent}%)</div>
-        <div class="stat-item">🔥 Серия <br>${streak} дн.</div>
+        <div class="stat-item">📅 Среднее за месяц <br><span style="color:${getAvgColorDisplay(monthAvg)}; font-size:1.2rem;">${monthAvg}</span></div>
+        <div class="stat-item">📋 Заполнено <br><span style="font-size:1.2rem;">${monthEntries.length}/${daysInMonth} (${fillPercent}%)</span></div>
       `;
 
       drawLineChart();
@@ -689,11 +716,11 @@
         allDays.push({ day: d, mood: moodData[key]?.mood || null });
       }
 
-      const padding = { left: 50, right: 30, top: 25, bottom: 45 };
+      const padding = { left: 50, right: 30, top: 25, bottom: 50 };
       const chartW = width - padding.left - padding.right;
       const chartH = height - padding.top - padding.bottom;
 
-      // Сетка — только эмодзи, без цифр
+      // Сетка — только эмодзи
       ctx.font = '18px Inter, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
@@ -746,22 +773,15 @@
         });
       }
 
-      // Подписи "Начало месяца" и "Конец месяца" — чёткий шрифт
+      // Подписи "Начало месяца" и "Конец месяца" — без стрелочек
       ctx.fillStyle = textColor;
       ctx.font = 'bold 13px Inter, system-ui, sans-serif';
       ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillText('Начало месяца', padding.left, height - 35);
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('Начало месяца', padding.left, height - 8);
       
       ctx.textAlign = 'right';
-      ctx.fillText('Конец месяца', width - padding.right, height - 35);
-      
-      // Маленькие стрелочки-указатели
-      ctx.textAlign = 'left';
-      ctx.font = '11px Inter, sans-serif';
-      ctx.fillText('▼', padding.left + 20, height - 20);
-      ctx.textAlign = 'right';
-      ctx.fillText('▼', width - padding.right - 20, height - 20);
+      ctx.fillText('Конец месяца', width - padding.right, height - 8);
     }
 
     function findTopBadReasons() {
