@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>Календарь Настроения</title>
+  <title>📅 Календарь Настроения</title>
   <style>
     * {
       margin: 0;
@@ -22,14 +22,14 @@
       --radius: 20px;
       --radius-sm: 14px;
       --transition: 0.2s ease;
-      --mood-red: #ef4444;
+      --mood-red: #dc2626;
       --mood-orange: #f97316;
       --mood-yellow: #eab308;
       --mood-green: #22c55e;
-      --mood-red-soft: #fee2e2;
-      --mood-orange-soft: #ffedd5;
-      --mood-yellow-soft: #fef9c3;
-      --mood-green-soft: #dcfce7;
+      --mood-red-soft: #fecaca;
+      --mood-orange-soft: #fed7aa;
+      --mood-yellow-soft: #fef08a;
+      --mood-green-soft: #bbf7d0;
       --canvas-bg: #ffffff;
       --chart-grid: #e2e8f0;
     }
@@ -82,7 +82,7 @@
 
     .app-title {
       font-weight: 650;
-      font-size: 1.4rem;
+      font-size: 1.15rem;
       white-space: nowrap;
     }
 
@@ -99,7 +99,7 @@
       gap: 6px;
       transition: all var(--transition);
       box-shadow: var(--shadow);
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       white-space: nowrap;
     }
 
@@ -181,12 +181,18 @@
 
     .weekdays-row {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
+      grid-template-columns: repeat(7, 1fr) 42px;
       text-align: center;
       font-weight: 600;
       color: var(--text-secondary);
       margin-bottom: 6px;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
+      gap: 6px;
+    }
+
+    .weekdays-row .avg-header {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
     }
 
     .week-row {
@@ -356,7 +362,7 @@
 <body>
 <div class="app-container" id="app">
   <div class="top-bar">
-    <span class="app-title">😊 Календарь Настроения</span>
+    <span class="app-title">📅 Календарь Настроения</span>
     <button class="theme-toggle" id="themeToggle">Тема: Авто</button>
   </div>
 
@@ -375,13 +381,14 @@
     </div>
     <div class="weekdays-row">
       <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+      <span class="avg-header">Сред.<br>Знач.</span>
     </div>
     <div id="calendarGrid"></div>
   </div>
 
   <div class="card">
     <h3 style="margin-bottom:12px;">📈 Детальная аналитика</h3>
-    <canvas id="moodChart" height="220" style="margin-bottom:8px;"></canvas>
+    <canvas id="moodChart" height="180" style="margin-bottom:8px;"></canvas>
     <div class="analytics-detail" id="topBadReasonsContainer">
       <strong>Основные причины плохих дней:</strong> <span id="topBadReasons">—</span>
     </div>
@@ -393,10 +400,10 @@
     <button class="modal-close" id="modalCloseBtn">✕</button>
     <h3 id="modalDate"></h3>
     <div class="mood-selector" id="moodSelector">
-      <span data-mood="1" class="mood-option">😞</span>
-      <span data-mood="2" class="mood-option">😕</span>
-      <span data-mood="3" class="mood-option">🙂</span>
-      <span data-mood="4" class="mood-option">😄</span>
+      <span data-mood="1" class="mood-option">🔴</span>
+      <span data-mood="2" class="mood-option">🟠</span>
+      <span data-mood="3" class="mood-option">🟡</span>
+      <span data-mood="4" class="mood-option">🟢</span>
     </div>
     <div class="category-chips" id="categoryChips"></div>
     <textarea id="noteText" placeholder="Заметка..." rows="2"></textarea>
@@ -431,10 +438,10 @@
     ];
 
     const moodMap = {
-      1: { emoji: '😞', bgClass: 'mood-red', displayValue: 2 },
-      2: { emoji: '😕', bgClass: 'mood-orange', displayValue: 3 },
-      3: { emoji: '🙂', bgClass: 'mood-yellow', displayValue: 4 },
-      4: { emoji: '😄', bgClass: 'mood-green', displayValue: 5 }
+      1: { emoji: '🔴', bgClass: 'mood-red', displayValue: 2 },
+      2: { emoji: '🟠', bgClass: 'mood-orange', displayValue: 3 },
+      3: { emoji: '🟡', bgClass: 'mood-yellow', displayValue: 4 },
+      4: { emoji: '🟢', bgClass: 'mood-green', displayValue: 5 }
     };
 
     const monthNames = [
@@ -654,7 +661,7 @@
 
     window.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-    // ---------- Статистика (только месяц и заполнено) ----------
+    // ---------- Статистика ----------
     function updateStatsAndAnalytics() {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
@@ -692,7 +699,7 @@
       const ctx = canvas.getContext('2d');
       const dpr = window.devicePixelRatio || 1;
       const width = canvas.clientWidth || 400;
-      const height = 220;
+      const height = 180;
       
       canvas.width = width * dpr;
       canvas.height = height * dpr;
@@ -716,15 +723,15 @@
         allDays.push({ day: d, mood: moodData[key]?.mood || null });
       }
 
-      const padding = { left: 50, right: 30, top: 25, bottom: 50 };
+      const padding = { left: 50, right: 30, top: 20, bottom: 40 };
       const chartW = width - padding.left - padding.right;
       const chartH = height - padding.top - padding.bottom;
 
-      // Сетка — только эмодзи
-      ctx.font = '18px Inter, sans-serif';
+      // Сетка — эмодзи 🔴🟠🟡🟢
+      ctx.font = '16px Inter, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      const emojis = ['', '😞', '😕', '🙂', '😄'];
+      const emojis = ['', '🔴', '🟠', '🟡', '🟢'];
       for (let displayVal = 2; displayVal <= 5; displayVal++) {
         const internalVal = displayVal - 1;
         const y = padding.top + chartH - ((internalVal - 1) / 3) * chartH;
@@ -764,7 +771,7 @@
           const internalVal = item.mood;
           const y = padding.top + chartH - ((internalVal - 1) / 3) * chartH;
           ctx.beginPath();
-          ctx.arc(x, y, 4, 0, 2 * Math.PI);
+          ctx.arc(x, y, 3.5, 0, 2 * Math.PI);
           ctx.fillStyle = '#3b82f6';
           ctx.fill();
           ctx.strokeStyle = '#ffffff';
@@ -773,15 +780,15 @@
         });
       }
 
-      // Подписи "Начало месяца" и "Конец месяца" — без стрелочек
+      // Подписи
       ctx.fillStyle = textColor;
-      ctx.font = 'bold 13px Inter, system-ui, sans-serif';
+      ctx.font = 'bold 12px Inter, system-ui, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'bottom';
-      ctx.fillText('Начало месяца', padding.left, height - 8);
+      ctx.fillText('Начало месяца', padding.left, height - 6);
       
       ctx.textAlign = 'right';
-      ctx.fillText('Конец месяца', width - padding.right, height - 8);
+      ctx.fillText('Конец месяца', width - padding.right, height - 6);
     }
 
     function findTopBadReasons() {
