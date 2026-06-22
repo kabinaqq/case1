@@ -30,6 +30,8 @@
       --mood-orange-soft: #ffe4c4;
       --mood-yellow-soft: #ffffcc;
       --mood-green-soft: #ccffcc;
+      --mood-yellow-text: #7a7a00;
+      --mood-green-text: #006600;
       --canvas-bg: #ffffff;
       --chart-grid: #e2e8f0;
     }
@@ -46,6 +48,8 @@
       --mood-orange-soft: #663900;
       --mood-yellow-soft: #666600;
       --mood-green-soft: #006600;
+      --mood-yellow-text: #ffff66;
+      --mood-green-text: #66ff66;
       --canvas-bg: #1e293b;
       --chart-grid: #334155;
     }
@@ -75,9 +79,9 @@
 
     .top-bar {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .app-title {
@@ -215,7 +219,7 @@
       align-items: center;
       justify-content: center;
       border-radius: 14px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
       transition: 0.15s ease;
       background: transparent;
@@ -254,8 +258,8 @@
 
     .mood-red { background: var(--mood-red-soft); color: var(--mood-red); }
     .mood-orange { background: var(--mood-orange-soft); color: var(--mood-orange); }
-    .mood-yellow { background: var(--mood-yellow-soft); color: var(--mood-yellow); }
-    .mood-green { background: var(--mood-green-soft); color: var(--mood-green); }
+    .mood-yellow { background: var(--mood-yellow-soft); color: var(--mood-yellow-text); }
+    .mood-green { background: var(--mood-green-soft); color: var(--mood-green-text); }
 
     .modal {
       display: none;
@@ -480,18 +484,12 @@
       return (sum / moodsArray.length).toFixed(1);
     }
 
-    // ---------- Плавный цвет от красного к зелёному (с уклоном к зелёному) ----------
     function getSmoothColor(value) {
-      // value от 2.0 до 5.0
-      // Смещаем ближе к зелёному: используем нелинейное преобразование
-      const t = (value - 2) / 3; // 0 = красный, 1 = зелёный
-      // Применяем easing для смещения к зелёному
+      const t = (value - 2) / 3;
       const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-      
       const r = Math.round(255 * (1 - eased));
       const g = Math.round(255 * eased);
-      const b = 0;
-      return `rgb(${r}, ${g}, ${b})`;
+      return `rgb(${r}, ${g}, 0)`;
     }
 
     function getAvgBgColor(value) {
@@ -501,8 +499,7 @@
       const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
       const r = Math.round(255 * (1 - eased));
       const g = Math.round(255 * eased);
-      const b = 0;
-      return `rgba(${r}, ${g}, ${b}, 0.2)`;
+      return `rgba(${r}, ${g}, 0, 0.2)`;
     }
 
     // ---------- Тема ----------
@@ -721,7 +718,6 @@
       findTopBadReasons();
     }
 
-    // ---------- График (шире по горизонтали, плавные линии без точек) ----------
     function drawLineChart() {
       const canvas = document.getElementById('moodChart');
       if (!canvas) return;
@@ -752,12 +748,10 @@
         allDays.push({ day: d, mood: moodData[key]?.mood || null });
       }
 
-      // Уменьшаем отступы слева и справа для более широкого графика
       const padding = { left: 40, right: 16, top: 20, bottom: 30 };
       const chartW = width - padding.left - padding.right;
       const chartH = height - padding.top - padding.bottom;
 
-      // Сетка — эмодзи настроения
       ctx.font = '15px Inter, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
@@ -778,7 +772,6 @@
         ctx.fillText(emojis[internalVal], 2, y);
       }
 
-      // Плавная линия (без точек) с использованием кривых Безье
       const validPoints = [];
       allDays.forEach((item, i) => {
         if (item.mood !== null) {
@@ -798,7 +791,6 @@
         
         ctx.moveTo(validPoints[0].x, validPoints[0].y);
         
-        // Используем квадратичные кривые для плавности
         for (let i = 0; i < validPoints.length - 1; i++) {
           const xc = (validPoints[i].x + validPoints[i + 1].x) / 2;
           const yc = (validPoints[i].y + validPoints[i + 1].y) / 2;
@@ -808,7 +800,6 @@
         ctx.stroke();
       }
 
-      // Подписи
       ctx.fillStyle = textColor;
       ctx.font = 'bold 11px Inter, system-ui, sans-serif';
       ctx.textAlign = 'left';
