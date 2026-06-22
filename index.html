@@ -10,7 +10,6 @@
       padding: 0;
       box-sizing: border-box;
     }
-
     :root {
       --bg: #f8fafc;
       --surface: #ffffff;
@@ -18,7 +17,7 @@
       --text-secondary: #475569;
       --border: #e2e8f0;
       --hover: #f1f5f9;
-      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+      --shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.02);
       --radius: 20px;
       --radius-sm: 14px;
       --transition: 0.2s ease;
@@ -30,12 +29,10 @@
       --mood-orange-soft: #ffe4c4;
       --mood-yellow-soft: #ffffcc;
       --mood-green-soft: #ccffcc;
-      --day-text-light: #4b5563;
-      --day-text-dark: #d1d5db;
+      --day-text: #4b5563;
       --canvas-bg: #ffffff;
       --chart-grid: #e2e8f0;
     }
-
     body.dark {
       --bg: #0b1120;
       --surface: #1e293b;
@@ -43,17 +40,17 @@
       --text-secondary: #94a3b8;
       --border: #334155;
       --hover: #2d3a4f;
-      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+      --shadow: 0 10px 25px -5px rgba(0,0,0,0.5), 0 8px 10px -6px rgba(0,0,0,0.4);
       --mood-red-soft: #660000;
       --mood-orange-soft: #663900;
       --mood-yellow-soft: #666600;
       --mood-green-soft: #006600;
+      --day-text: #d1d5db;
       --canvas-bg: #1e293b;
       --chart-grid: #334155;
     }
-
     body {
-      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
@@ -64,7 +61,6 @@
       align-items: flex-start;
       transition: background var(--transition), color var(--transition);
     }
-
     .app-container {
       max-width: 700px;
       width: 100%;
@@ -74,25 +70,22 @@
       gap: 18px;
       padding-bottom: 24px;
     }
-
     .top-bar {
       display: flex;
-      justify-content: flex-start;
+      justify-content: space-between;
       align-items: center;
       gap: 10px;
     }
-
     .app-title {
       font-weight: 650;
       font-size: 1rem;
       white-space: nowrap;
     }
-
-    .theme-toggle {
+    .settings-btn {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 40px;
-      padding: 8px 18px;
+      padding: 8px 16px;
       font-weight: 600;
       cursor: pointer;
       color: var(--text);
@@ -102,24 +95,19 @@
       transition: all var(--transition);
       box-shadow: var(--shadow);
       font-size: 0.85rem;
-      white-space: nowrap;
     }
-
     .card {
       background: var(--surface);
       border-radius: var(--radius);
       padding: 18px 16px;
       box-shadow: var(--shadow);
       border: 1px solid var(--border);
-      transition: background var(--transition), border var(--transition);
     }
-
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 12px;
     }
-
     .stat-item {
       background: var(--hover);
       border-radius: var(--radius-sm);
@@ -127,7 +115,6 @@
       text-align: center;
       font-weight: 500;
     }
-
     .calendar-header {
       display: flex;
       align-items: center;
@@ -136,18 +123,11 @@
       flex-wrap: wrap;
       gap: 10px;
     }
-
     .month-year {
       font-size: 1.6rem;
       font-weight: 650;
-      letter-spacing: -0.3px;
     }
-
-    .nav-btns {
-      display: flex;
-      gap: 8px;
-    }
-
+    .nav-btns { display: flex; gap: 8px; }
     button {
       background: var(--hover);
       border: none;
@@ -164,23 +144,9 @@
       font-size: 0.95rem;
       border: 1px solid transparent;
     }
-
-    button:hover {
-      background: var(--border);
-      border-color: var(--text-secondary);
-    }
-
-    button.primary {
-      background: #3b82f6;
-      color: white;
-      border: none;
-      font-weight: 600;
-    }
-
-    button.primary:hover {
-      background: #2563eb;
-    }
-
+    button:hover { background: var(--border); border-color: var(--text-secondary); }
+    button.primary { background: #3b82f6; color: white; border: none; font-weight: 600; }
+    button.primary:hover { background: #2563eb; }
     .weekdays-row {
       display: grid;
       grid-template-columns: repeat(7, 1fr) 42px;
@@ -192,17 +158,7 @@
       gap: 6px;
       align-items: end;
     }
-
-    .weekdays-row .avg-header {
-      font-size: 0.7rem;
-      color: var(--text-secondary);
-      line-height: 1.2;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      padding-bottom: 2px;
-    }
-
+    .avg-header { font-size: 0.7rem; line-height: 1.2; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 2px; }
     .week-row {
       display: grid;
       grid-template-columns: repeat(7, 1fr) 42px;
@@ -210,190 +166,82 @@
       align-items: center;
       margin-bottom: 6px;
     }
-
     .day-cell {
-      aspect-ratio: 1 / 1;
+      aspect-ratio: 1/1;
       display: flex;
       align-items: center;
       justify-content: center;
       border-radius: 14px;
       font-weight: 600;
       cursor: pointer;
-      transition: 0.15s ease;
       background: transparent;
       font-size: 0.9rem;
       border: 1px solid transparent;
-      color: var(--day-text-light);
+      color: var(--day-text);
     }
-
-    body.dark .day-cell {
-      color: var(--day-text-dark);
-    }
-
-    .day-cell:hover {
-      background: var(--hover);
-      border-color: var(--border);
-    }
-
-    .day-cell.other-month {
-      color: #94a3b8;
-      opacity: 0.55;
-    }
-
-    body.dark .day-cell.other-month {
-      color: #6b7280;
-    }
-
-    .day-cell.today {
-      border: 2px solid #3b82f6;
-      font-weight: 700;
-    }
-
+    .day-cell:hover { background: var(--hover); border-color: var(--border); }
+    .day-cell.other-month { color: #94a3b8; opacity: 0.55; }
+    body.dark .day-cell.other-month { color: #6b7280; }
+    .day-cell.today { border: 2px solid #3b82f6; font-weight: 700; }
     .week-avg {
-      width: 36px;
-      height: 36px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
-      font-weight: 600;
-      background: var(--hover);
-      color: var(--day-text-light);
-      margin-left: 2px;
+      width: 36px; height: 36px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 600; background: var(--hover);
+      color: var(--day-text); margin-left: 2px;
     }
-
-    body.dark .week-avg {
-      color: var(--day-text-dark);
-    }
-
     .mood-red { background: var(--mood-red-soft); }
     .mood-orange { background: var(--mood-orange-soft); }
     .mood-yellow { background: var(--mood-yellow-soft); }
     .mood-green { background: var(--mood-green-soft); }
 
     .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      backdrop-filter: blur(4px);
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); align-items: center; justify-content: center;
+      z-index: 1000; backdrop-filter: blur(4px);
     }
-    .modal.active {
-      display: flex;
-    }
+    .modal.active { display: flex; }
     .modal-content {
-      background: var(--surface);
-      border-radius: var(--radius);
-      padding: 22px 18px;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: 0 20px 35px rgba(0,0,0,0.3);
-      max-height: 90vh;
-      overflow-y: auto;
-      position: relative;
+      background: var(--surface); border-radius: var(--radius); padding: 22px 18px;
+      width: 90%; max-width: 400px; box-shadow: 0 20px 35px rgba(0,0,0,0.3);
+      max-height: 90vh; overflow-y: auto; position: relative;
     }
     .modal-close {
-      position: absolute;
-      top: 14px;
-      right: 16px;
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: var(--text-secondary);
-      padding: 4px 8px;
-      border-radius: 12px;
-      line-height: 1;
-      transition: all 0.2s;
+      position: absolute; top: 14px; right: 16px; background: none; border: none;
+      font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);
+      padding: 4px 8px; border-radius: 12px;
     }
-    .modal-close:hover {
-      background: var(--hover);
-      color: var(--text);
-    }
-    .mood-selector {
-      display: flex;
-      justify-content: space-around;
-      margin: 18px 0;
-    }
-    .mood-option {
-      font-size: 2.2rem;
-      padding: 8px;
-      border-radius: 18px;
-      cursor: pointer;
-      transition: 0.2s;
-      opacity: 0.65;
-    }
-    .mood-option.selected {
-      opacity: 1;
-      transform: scale(1.2);
-      background: var(--hover);
-    }
+    .mood-selector { display: flex; justify-content: space-around; margin: 18px 0; }
+    .mood-option { font-size: 2.2rem; padding: 8px; border-radius: 18px; cursor: pointer; opacity: 0.65; }
+    .mood-option.selected { opacity: 1; transform: scale(1.2); background: var(--hover); }
     textarea, input {
-      width: 100%;
-      padding: 12px;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text);
-      margin: 8px 0;
-      font-family: inherit;
+      width: 100%; padding: 12px; border-radius: 14px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text); margin: 8px 0; font-family: inherit;
     }
-    .category-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 12px 0;
-    }
+    .category-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
     .chip {
-      background: var(--hover);
-      padding: 8px 16px;
-      border-radius: 30px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      border: 1px solid transparent;
-      transition: all 0.2s;
+      background: var(--hover); padding: 8px 16px; border-radius: 30px;
+      font-size: 0.85rem; cursor: pointer; border: 1px solid transparent;
     }
-    .chip.active {
-      background: #3b82f6;
-      color: white;
-      border-color: white;
-      font-weight: 500;
-    }
-    .chart-wrapper {
-      margin: 0 -8px;
-    }
-    canvas {
-      width: 100%;
-      border-radius: 16px;
-      background: var(--canvas-bg);
-    }
+    .chip.active { background: #3b82f6; color: white; border-color: white; }
+    canvas { width: 100%; border-radius: 16px; background: var(--canvas-bg); }
     .analytics-detail {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      margin-top: 12px;
-      font-size: 0.95rem;
-      background: var(--hover);
-      padding: 12px;
-      border-radius: 16px;
+      display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px;
+      font-size: 0.95rem; background: var(--hover); padding: 12px; border-radius: 16px;
     }
+    .settings-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 16px 0; gap: 12px;
+    }
+    .tz-control { display: flex; align-items: center; gap: 8px; }
   </style>
 </head>
 <body>
 <div class="app-container" id="app">
   <div class="top-bar">
     <span class="app-title">📅 Календарь Настроения</span>
-    <button class="theme-toggle" id="themeToggle">Тема: Авто</button>
+    <button class="settings-btn" id="settingsBtn">⚙️ Настройки</button>
   </div>
-
-  <div class="card">
-    <div class="stats-grid" id="statsContainer"></div>
-  </div>
-
+  <div class="card"><div class="stats-grid" id="statsContainer"></div></div>
   <div class="card">
     <div class="calendar-header">
       <div class="month-year" id="monthYearDisplay"></div>
@@ -409,18 +257,14 @@
     </div>
     <div id="calendarGrid"></div>
   </div>
-
   <div class="card">
     <h3 style="margin-bottom:12px;">📈 Детальная аналитика</h3>
-    <div class="chart-wrapper">
-      <canvas id="moodChart" height="140"></canvas>
-    </div>
-    <div class="analytics-detail" id="topBadReasonsContainer">
-      <strong>Основные причины плохих дней:</strong> <span id="topBadReasons">—</span>
-    </div>
+    <canvas id="moodChart" height="140"></canvas>
+    <div class="analytics-detail"><strong>Основные причины плохих дней:</strong> <span id="topBadReasons">—</span></div>
   </div>
 </div>
 
+<!-- Модальное окно настроения -->
 <div class="modal" id="moodModal">
   <div class="modal-content">
     <button class="modal-close" id="modalCloseBtn">✕</button>
@@ -433,9 +277,33 @@
     </div>
     <div class="category-chips" id="categoryChips"></div>
     <textarea id="noteText" placeholder="Заметка..." rows="2"></textarea>
-    <div style="display:flex; justify-content: space-between; gap:10px; margin-top:8px;">
+    <div style="display:flex; justify-content:space-between; gap:10px; margin-top:8px;">
       <button id="deleteEntryBtn">🗑 Удалить</button>
       <button class="primary" id="saveMoodBtn">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно настроек -->
+<div class="modal" id="settingsModal">
+  <div class="modal-content">
+    <button class="modal-close" id="settingsCloseBtn">✕</button>
+    <h3>⚙️ Настройки</h3>
+    <div class="settings-row">
+      <span>Тема оформления</span>
+      <select id="themeSelect" style="padding:8px; border-radius:12px; background:var(--hover); color:var(--text); border:1px solid var(--border);">
+        <option value="auto">Авто</option>
+        <option value="light">Светлая</option>
+        <option value="dark">Тёмная</option>
+      </select>
+    </div>
+    <div class="settings-row">
+      <span>Часовой пояс</span>
+      <div class="tz-control">
+        <button id="tzMinusBtn" style="padding:8px 12px;">−1</button>
+        <span id="tzDisplay" style="min-width:70px; text-align:center;">Москва (UTC+3)</span>
+        <button id="tzPlusBtn" style="padding:8px 12px;">+1</button>
+      </div>
     </div>
   </div>
 </div>
@@ -444,405 +312,250 @@
   (function() {
     const STORAGE_KEY = 'mood_calendar_data';
     let moodData = {};
-
-    function loadData() {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        moodData = stored ? JSON.parse(stored) : {};
-      } catch (e) { moodData = {}; }
-    }
-    function saveData() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(moodData));
-    }
+    function loadData() { try { moodData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e){ moodData={}; } }
+    function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(moodData)); }
 
     let currentDate = new Date();
-    
-    const CATEGORIES = [
-      'Работа', 'Учеба', 'Отношения', 'Семья', 'Здоровье', 
-      'Финансы', 'Друзья', 'Отдых', 'Спорт', 'Питание',
-      'Погода', 'Сон', 'Хобби', 'Путешествия', 'Другое'
-    ];
+    let userTimezoneOffset = parseInt(localStorage.getItem('mood_tz_offset') || '180'); // Москва UTC+3 = 180 мин
 
+    const CATEGORIES = ['Работа','Учеба','Отношения','Семья','Здоровье','Финансы','Друзья','Отдых','Спорт','Питание','Погода','Сон','Хобби','Путешествия','Другое'];
     const moodMap = {
-      1: { emoji: '😞', bgClass: 'mood-red', displayValue: 2 },
-      2: { emoji: '😕', bgClass: 'mood-orange', displayValue: 3 },
-      3: { emoji: '🙂', bgClass: 'mood-yellow', displayValue: 4 },
-      4: { emoji: '😄', bgClass: 'mood-green', displayValue: 5 }
+      1: { emoji:'😞', bgClass:'mood-red' },
+      2: { emoji:'😕', bgClass:'mood-orange' },
+      3: { emoji:'🙂', bgClass:'mood-yellow' },
+      4: { emoji:'😄', bgClass:'mood-green' }
     };
+    const monthNames = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 
-    const monthNames = [
-      'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-      'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
-    ];
+    function getUserNow() {
+      const now = new Date();
+      return new Date(now.getTime() + now.getTimezoneOffset() * 60000 + userTimezoneOffset * 60000);
+    }
 
     function formatDateKey(year, month, day) {
       return `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     }
 
-    function formatDateDisplay(dateKey) {
-      const [y, m, d] = dateKey.split('-');
-      return `${parseInt(d)} ${monthNames[parseInt(m)-1]}`;
-    }
-
     function getTodayKey() {
-      const d = new Date();
+      const d = getUserNow();
       return formatDateKey(d.getFullYear(), d.getMonth(), d.getDate());
     }
 
-    function getDisplayAvg(moodsArray) {
-      if (!moodsArray.length) return null;
-      const sum = moodsArray.reduce((s, m) => s + m + 1, 0);
-      return (sum / moodsArray.length).toFixed(1);
+    function formatDateDisplay(dateKey) {
+      const [y,m,d] = dateKey.split('-');
+      return `${parseInt(d)} ${monthNames[parseInt(m)-1]}`;
+    }
+
+    function getDisplayAvg(arr) {
+      if(!arr.length) return null;
+      return (arr.reduce((s,m)=>s+m+1,0)/arr.length).toFixed(1);
     }
 
     function getSmoothColor(value) {
-      const t = (value - 2) / 3;
-      const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-      const r = Math.round(255 * (1 - eased));
-      const g = Math.round(255 * eased);
-      return `rgb(${r}, ${g}, 0)`;
+      const t = (value-2)/3, eased = t<0.5? 2*t*t : -1+(4-2*t)*t;
+      return `rgb(${Math.round(255*(1-eased))},${Math.round(255*eased)},0)`;
     }
 
     function getAvgBgColor(value) {
-      if (value === null) return 'var(--hover)';
-      const num = parseFloat(value);
-      const t = (num - 2) / 3;
-      const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-      const r = Math.round(255 * (1 - eased));
-      const g = Math.round(255 * eased);
-      return `rgba(${r}, ${g}, 0, 0.2)`;
+      if(value===null) return 'var(--hover)';
+      const t=(parseFloat(value)-2)/3, eased=t<0.5?2*t*t:-1+(4-2*t)*t;
+      return `rgba(${Math.round(255*(1-eased))},${Math.round(255*eased)},0,0.2)`;
     }
 
-    // ---------- Тема ----------
-    const themeToggle = document.getElementById('themeToggle');
-    let themeMode = localStorage.getItem('mood_theme_mode') || 'auto';
+    // ---------- Настройки ----------
+    const themeSelect = document.getElementById('themeSelect');
+    const tzDisplay = document.getElementById('tzDisplay');
+    const settingsModal = document.getElementById('settingsModal');
+
+    function getTzName(offset) {
+      if(offset === 180) return 'Москва (UTC+3)';
+      const sign = offset>=0?'+':'-';
+      const h = Math.floor(Math.abs(offset)/60), m = Math.abs(offset)%60;
+      return `UTC${sign}${h}${m?':'+m:''}`;
+    }
+
+    function updateTzDisplay() {
+      tzDisplay.textContent = getTzName(userTimezoneOffset);
+    }
 
     function applyTheme(mode) {
-      if (mode === 'light') {
-        document.body.classList.remove('dark');
-      } else if (mode === 'dark') {
-        document.body.classList.add('dark');
-      } else {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.body.classList.toggle('dark', prefersDark);
-      }
-      updateThemeButton(mode);
+      document.body.classList.toggle('dark', mode==='dark' || (mode==='auto' && window.matchMedia('(prefers-color-scheme:dark)').matches));
+      themeSelect.value = mode;
     }
 
-    function updateThemeButton(mode) {
-      if (mode === 'auto') themeToggle.innerHTML = 'Тема: Авто';
-      else if (mode === 'light') themeToggle.innerHTML = 'Тема: Светлая';
-      else themeToggle.innerHTML = 'Тема: Тёмная';
-    }
-
-    themeToggle.addEventListener('click', () => {
-      if (themeMode === 'auto') themeMode = 'light';
-      else if (themeMode === 'light') themeMode = 'dark';
-      else themeMode = 'auto';
-      localStorage.setItem('mood_theme_mode', themeMode);
-      applyTheme(themeMode);
+    themeSelect.addEventListener('change', (e) => {
+      const mode = e.target.value;
+      localStorage.setItem('mood_theme_mode', mode);
+      applyTheme(mode);
       drawLineChart();
     });
 
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      if (themeMode === 'auto') {
-        applyTheme('auto');
-        drawLineChart();
-      }
+    document.getElementById('tzMinusBtn').addEventListener('click', ()=>{
+      userTimezoneOffset -= 60;
+      localStorage.setItem('mood_tz_offset', userTimezoneOffset);
+      updateTzDisplay();
+      currentDate = getUserNow();
+      renderCalendar();
+    });
+    document.getElementById('tzPlusBtn').addEventListener('click', ()=>{
+      userTimezoneOffset += 60;
+      localStorage.setItem('mood_tz_offset', userTimezoneOffset);
+      updateTzDisplay();
+      currentDate = getUserNow();
+      renderCalendar();
     });
 
-    applyTheme(themeMode);
+    document.getElementById('settingsBtn').addEventListener('click', ()=>{
+      updateTzDisplay();
+      settingsModal.classList.add('active');
+    });
+    document.getElementById('settingsCloseBtn').addEventListener('click', ()=> settingsModal.classList.remove('active'));
+    window.addEventListener('click', (e)=>{ if(e.target===settingsModal) settingsModal.classList.remove('active'); });
+
+    const savedTheme = localStorage.getItem('mood_theme_mode') || 'auto';
+    applyTheme(savedTheme);
+    window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change', ()=>{
+      if((localStorage.getItem('mood_theme_mode')||'auto')==='auto') { applyTheme('auto'); drawLineChart(); }
+    });
 
     // ---------- Календарь ----------
     function renderCalendar() {
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      document.getElementById('monthYearDisplay').textContent = 
-        `${currentDate.toLocaleString('ru', { month:'long' })} ${year}`;
-
+      const year = currentDate.getFullYear(), month = currentDate.getMonth();
+      document.getElementById('monthYearDisplay').textContent = `${currentDate.toLocaleString('ru',{month:'long'})} ${year}`;
       const firstDay = new Date(year, month, 1).getDay();
       const daysInMonth = new Date(year, month+1, 0).getDate();
       const prevMonthDays = new Date(year, month, 0).getDate();
-      
-      let startDayIndex = firstDay === 0 ? 6 : firstDay - 1;
+      let startDayIndex = firstDay===0?6:firstDay-1;
       const grid = document.getElementById('calendarGrid');
       grid.innerHTML = '';
-
       const todayKey = getTodayKey();
       const cells = [];
-
-      for (let i = startDayIndex-1; i >= 0; i--) {
-        const day = prevMonthDays - i;
-        cells.push({ day, dateKey: formatDateKey(year, month-1, day), isOtherMonth: true });
-      }
-      for (let d = 1; d <= daysInMonth; d++) {
-        const dateKey = formatDateKey(year, month, d);
-        cells.push({ day: d, dateKey, isOtherMonth: false, isToday: dateKey === todayKey });
-      }
-      const totalCells = startDayIndex + daysInMonth;
-      const remaining = 7 - (totalCells % 7);
-      if (remaining < 7) {
-        for (let d = 1; d <= remaining; d++) {
-          cells.push({ day: d, dateKey: formatDateKey(year, month+1, d), isOtherMonth: true });
-        }
-      }
+      for(let i=startDayIndex-1;i>=0;i--) cells.push({day:prevMonthDays-i, dateKey:formatDateKey(year,month-1,prevMonthDays-i), isOtherMonth:true});
+      for(let d=1;d<=daysInMonth;d++) cells.push({day:d, dateKey:formatDateKey(year,month,d), isOtherMonth:false, isToday:formatDateKey(year,month,d)===todayKey});
+      const rem = 7 - ((startDayIndex+daysInMonth)%7);
+      if(rem<7) for(let d=1;d<=rem;d++) cells.push({day:d, dateKey:formatDateKey(year,month+1,d), isOtherMonth:true});
 
       const weeks = [];
-      for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+      for(let i=0;i<cells.length;i+=7) weeks.push(cells.slice(i,i+7));
 
-      weeks.forEach(weekCells => {
-        const weekRow = document.createElement('div');
-        weekRow.className = 'week-row';
-        const moodsInWeek = weekCells.map(c => moodData[c.dateKey]?.mood).filter(m => m != null);
-        const avgDisplay = getDisplayAvg(moodsInWeek);
-
-        weekCells.forEach(cell => {
-          const dayDiv = document.createElement('div');
-          dayDiv.className = 'day-cell';
-          if (cell.isOtherMonth) dayDiv.classList.add('other-month');
-          if (cell.isToday) dayDiv.classList.add('today');
-          const entry = moodData[cell.dateKey];
-          if (entry?.mood && moodMap[entry.mood]) dayDiv.classList.add(moodMap[entry.mood].bgClass);
-          dayDiv.textContent = cell.day;
-          dayDiv.addEventListener('click', () => openModal(cell.dateKey));
-          weekRow.appendChild(dayDiv);
+      weeks.forEach(w=>{
+        const row = document.createElement('div'); row.className='week-row';
+        const moods = w.map(c=>moodData[c.dateKey]?.mood).filter(m=>m!=null);
+        const avg = getDisplayAvg(moods);
+        w.forEach(cell=>{
+          const d = document.createElement('div'); d.className='day-cell';
+          if(cell.isOtherMonth) d.classList.add('other-month');
+          if(cell.isToday) d.classList.add('today');
+          const e = moodData[cell.dateKey];
+          if(e?.mood && moodMap[e.mood]) d.classList.add(moodMap[e.mood].bgClass);
+          d.textContent = cell.day;
+          d.addEventListener('click', ()=>openModal(cell.dateKey));
+          row.appendChild(d);
         });
-
-        const avgDiv = document.createElement('div');
-        avgDiv.className = 'week-avg';
-        avgDiv.textContent = avgDisplay !== null ? avgDisplay : '·';
-        if (avgDisplay !== null) {
-          const num = parseFloat(avgDisplay);
-          avgDiv.style.background = getAvgBgColor(num);
-          avgDiv.style.color = getSmoothColor(num);
-          avgDiv.style.fontWeight = '700';
-        }
-        weekRow.appendChild(avgDiv);
-        grid.appendChild(weekRow);
+        const a = document.createElement('div'); a.className='week-avg';
+        a.textContent = avg!==null?avg:'·';
+        if(avg!==null){ const n=parseFloat(avg); a.style.background=getAvgBgColor(n); a.style.color=getSmoothColor(n); a.style.fontWeight='700'; }
+        row.appendChild(a);
+        grid.appendChild(row);
       });
-
       updateStatsAndAnalytics();
     }
 
-    // ---------- Модальное окно ----------
-    let currentModalDate = null, selectedMood = null, selectedCategories = [];
-    const modal = document.getElementById('moodModal');
-    const noteText = document.getElementById('noteText');
-    const categoryChips = document.getElementById('categoryChips');
+    // ---------- Модалка настроения ----------
+    let curModalDate=null, selMood=null, selCats=[];
+    const moodModal=document.getElementById('moodModal'), noteText=document.getElementById('noteText'), catChips=document.getElementById('categoryChips');
 
-    function openModal(dateKey) {
-      currentModalDate = dateKey;
-      document.getElementById('modalDate').textContent = `📅 ${formatDateDisplay(dateKey)}`;
-      const entry = moodData[dateKey] || {};
-      selectedMood = entry.mood || null;
-      noteText.value = entry.note || '';
-      selectedCategories = entry.categories ? [...entry.categories] : [];
-      renderMoodSelector();
-      renderCategoryChips();
-      modal.classList.add('active');
+    function openModal(dateKey){
+      curModalDate=dateKey;
+      document.getElementById('modalDate').textContent=`📅 ${formatDateDisplay(dateKey)}`;
+      const e=moodData[dateKey]||{};
+      selMood=e.mood||null; noteText.value=e.note||''; selCats=e.categories?[...e.categories]:[];
+      renderMoodSelector(); renderCatChips(); moodModal.classList.add('active');
     }
-
-    function closeModal() {
-      modal.classList.remove('active');
+    function closeMood(){ moodModal.classList.remove('active'); }
+    document.getElementById('modalCloseBtn').addEventListener('click', closeMood);
+    function renderMoodSelector(){
+      document.querySelectorAll('#moodSelector .mood-option').forEach(o=>o.classList.toggle('selected', parseInt(o.dataset.mood)===selMood));
     }
-
-    document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
-
-    function renderMoodSelector() {
-      document.querySelectorAll('#moodSelector .mood-option').forEach(opt => {
-        opt.classList.toggle('selected', parseInt(opt.dataset.mood) === selectedMood);
-      });
+    function renderCatChips(){
+      catChips.innerHTML = CATEGORIES.map(c=>`<span class="chip ${selCats.includes(c)?'active':''}" data-cat="${c}">${c}</span>`).join('');
+      document.querySelectorAll('#categoryChips .chip').forEach(ch=>ch.addEventListener('click',(ev)=>{
+        const cat=ev.target.dataset.cat;
+        selCats=selCats.includes(cat)?selCats.filter(x=>x!==cat):[...selCats,cat];
+        renderCatChips();
+      }));
     }
-
-    function renderCategoryChips() {
-      categoryChips.innerHTML = CATEGORIES.map(cat => {
-        const active = selectedCategories.includes(cat);
-        return `<span class="chip ${active ? 'active' : ''}" data-cat="${cat}">${cat}</span>`;
-      }).join('');
-      document.querySelectorAll('#categoryChips .chip').forEach(chip => {
-        chip.addEventListener('click', (e) => {
-          const cat = e.target.dataset.cat;
-          selectedCategories = selectedCategories.includes(cat) 
-            ? selectedCategories.filter(c => c !== cat) 
-            : [...selectedCategories, cat];
-          renderCategoryChips();
-        });
-      });
-    }
-
-    document.getElementById('moodSelector').addEventListener('click', (e) => {
-      if (e.target.dataset.mood) { 
-        selectedMood = parseInt(e.target.dataset.mood); 
-        renderMoodSelector(); 
-      }
+    document.getElementById('moodSelector').addEventListener('click',(ev)=>{
+      if(ev.target.dataset.mood){ selMood=parseInt(ev.target.dataset.mood); renderMoodSelector(); }
     });
-
-    document.getElementById('saveMoodBtn').addEventListener('click', () => {
-      if (!currentModalDate || !selectedMood) return;
-      const now = new Date().toISOString();
-      const existing = moodData[currentModalDate] || {};
-      moodData[currentModalDate] = {
-        mood: selectedMood,
-        note: noteText.value.trim(),
-        categories: selectedCategories,
-        createdAt: existing.createdAt || now,
-        updatedAt: now
-      };
-      saveData();
-      closeModal();
-      renderCalendar();
+    document.getElementById('saveMoodBtn').addEventListener('click',()=>{
+      if(!curModalDate||!selMood) return;
+      const now=new Date().toISOString();
+      const old=moodData[curModalDate]||{};
+      moodData[curModalDate]={mood:selMood, note:noteText.value.trim(), categories:selCats, createdAt:old.createdAt||now, updatedAt:now};
+      saveData(); closeMood(); renderCalendar();
     });
-
-    document.getElementById('deleteEntryBtn').addEventListener('click', () => {
-      if (currentModalDate && moodData[currentModalDate]) {
-        delete moodData[currentModalDate];
-        saveData();
-        closeModal();
-        renderCalendar();
-      }
+    document.getElementById('deleteEntryBtn').addEventListener('click',()=>{
+      if(curModalDate&&moodData[curModalDate]){ delete moodData[curModalDate]; saveData(); closeMood(); renderCalendar(); }
     });
-
-    window.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    window.addEventListener('click',(e)=>{ if(e.target===moodModal) closeMood(); });
 
     // ---------- Статистика ----------
-    function updateStatsAndAnalytics() {
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      const daysInMonth = new Date(year, month+1, 0).getDate();
-      const monthKeys = [];
-      for (let d=1; d<=daysInMonth; d++) monthKeys.push(formatDateKey(year, month, d));
-      
-      const monthEntries = monthKeys.map(k => moodData[k]).filter(e => e?.mood);
-      const monthMoods = monthEntries.map(e => e.mood);
-      const fillPercent = Math.round((monthEntries.length / daysInMonth)*100);
-      const monthAvg = getDisplayAvg(monthMoods) || '—';
-
-      document.getElementById('statsContainer').innerHTML = `
-        <div class="stat-item">📅 Среднее за месяц <br><span style="color:${monthAvg !== '—' ? getSmoothColor(parseFloat(monthAvg)) : 'gray'}; font-size:1.2rem;">${monthAvg}</span></div>
-        <div class="stat-item">📋 Заполнено <br><span style="font-size:1.2rem;">${monthEntries.length}/${daysInMonth} (${fillPercent}%)</span></div>
-      `;
-
+    function updateStatsAndAnalytics(){
+      const y=currentDate.getFullYear(), m=currentDate.getMonth();
+      const days=new Date(y,m+1,0).getDate();
+      const keys=[]; for(let d=1;d<=days;d++) keys.push(formatDateKey(y,m,d));
+      const entries=keys.map(k=>moodData[k]).filter(e=>e?.mood);
+      const moods=entries.map(e=>e.mood);
+      const fill=Math.round((entries.length/days)*100);
+      const avg=getDisplayAvg(moods)||'—';
+      document.getElementById('statsContainer').innerHTML=`
+        <div class="stat-item">📅 Среднее за месяц <br><span style="color:${avg!=='—'?getSmoothColor(parseFloat(avg)):'gray'};font-size:1.2rem;">${avg}</span></div>
+        <div class="stat-item">📋 Заполнено <br><span style="font-size:1.2rem;">${entries.length}/${days} (${fill}%)</span></div>`;
       drawLineChart();
-      findTopBadReasons();
+      const bad={};
+      Object.values(moodData).forEach(e=>{ if(e.mood&&e.mood<=2&&e.categories) e.categories.forEach(c=>bad[c]=(bad[c]||0)+1); });
+      const top=Object.entries(bad).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([c,n])=>`${c} (${n})`).join(', ');
+      document.getElementById('topBadReasons').textContent=top||'—';
     }
 
-    function drawLineChart() {
-      const canvas = document.getElementById('moodChart');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      const dpr = window.devicePixelRatio || 1;
-      const width = canvas.clientWidth || 400;
-      const height = 140;
-      
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      canvas.style.width = width + 'px';
-      canvas.style.height = height + 'px';
-      ctx.scale(dpr, dpr);
-
-      const style = getComputedStyle(document.body);
-      const textColor = style.getPropertyValue('--text');
-      const gridColor = style.getPropertyValue('--chart-grid');
-
-      ctx.clearRect(0, 0, width, height);
-      
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      const daysInMonth = new Date(year, month+1, 0).getDate();
-      
-      const allDays = [];
-      for (let d=1; d<=daysInMonth; d++) {
-        const key = formatDateKey(year, month, d);
-        allDays.push({ day: d, mood: moodData[key]?.mood || null });
-      }
-
-      const padding = { left: 40, right: 16, top: 20, bottom: 30 };
-      const chartW = width - padding.left - padding.right;
-      const chartH = height - padding.top - padding.bottom;
-
-      ctx.font = '15px Inter, sans-serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      const emojis = ['', '😞', '😕', '🙂', '😄'];
-      for (let displayVal = 2; displayVal <= 5; displayVal++) {
-        const internalVal = displayVal - 1;
-        const y = padding.top + chartH - ((internalVal - 1) / 3) * chartH;
-        ctx.beginPath();
-        ctx.strokeStyle = gridColor;
-        ctx.lineWidth = 1;
-        ctx.setLineDash([4, 4]);
-        ctx.moveTo(padding.left, y);
-        ctx.lineTo(width - padding.right, y);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        
-        ctx.fillStyle = textColor;
-        ctx.fillText(emojis[internalVal], 2, y);
-      }
-
-      const validPoints = [];
-      allDays.forEach((item, i) => {
-        if (item.mood !== null) {
-          const x = padding.left + (i / (daysInMonth - 1)) * chartW;
-          const y = padding.top + chartH - ((item.mood - 1) / 3) * chartH;
-          validPoints.push({ x, y });
-        }
+    function drawLineChart(){
+      const canvas=document.getElementById('moodChart'); if(!canvas) return;
+      const ctx=canvas.getContext('2d'), dpr=window.devicePixelRatio||1, w=canvas.clientWidth||400, h=140;
+      canvas.width=w*dpr; canvas.height=h*dpr; canvas.style.width=w+'px'; canvas.style.height=h+'px'; ctx.scale(dpr,dpr);
+      const textColor=getComputedStyle(document.body).getPropertyValue('--text');
+      const gridColor=getComputedStyle(document.body).getPropertyValue('--chart-grid');
+      ctx.clearRect(0,0,w,h);
+      const y=currentDate.getFullYear(), m=currentDate.getMonth(), days=new Date(y,m+1,0).getDate();
+      const all=[]; for(let d=1;d<=days;d++) all.push({day:d, mood:moodData[formatDateKey(y,m,d)]?.mood||null});
+      const pad={left:40,right:16,top:20,bottom:30}, cw=w-pad.left-pad.right, ch=h-pad.top-pad.bottom;
+      ctx.font='15px Inter'; ctx.textAlign='left'; ctx.textBaseline='middle';
+      ['','😞','😕','🙂','😄'].forEach((em,i)=>{
+        if(i===0) return; const yPos=pad.top+ch-((i-1)/3)*ch;
+        ctx.beginPath(); ctx.strokeStyle=gridColor; ctx.setLineDash([4,4]); ctx.moveTo(pad.left,yPos); ctx.lineTo(w-pad.right,yPos); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle=textColor; ctx.fillText(em,2,yPos);
       });
-
-      if (validPoints.length >= 2) {
-        ctx.beginPath();
-        ctx.strokeStyle = '#3b82f6';
-        ctx.lineWidth = 2.5;
-        ctx.setLineDash([]);
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        
-        ctx.moveTo(validPoints[0].x, validPoints[0].y);
-        
-        for (let i = 0; i < validPoints.length - 1; i++) {
-          const xc = (validPoints[i].x + validPoints[i + 1].x) / 2;
-          const yc = (validPoints[i].y + validPoints[i + 1].y) / 2;
-          ctx.quadraticCurveTo(validPoints[i].x, validPoints[i].y, xc, yc);
-        }
-        ctx.lineTo(validPoints[validPoints.length - 1].x, validPoints[validPoints.length - 1].y);
-        ctx.stroke();
+      const pts=[]; all.forEach((it,i)=>{ if(it.mood!==null) pts.push({x:pad.left+(i/(days-1))*cw, y:pad.top+ch-((it.mood-1)/3)*ch}); });
+      if(pts.length>=2){
+        ctx.beginPath(); ctx.strokeStyle='#3b82f6'; ctx.lineWidth=2.5; ctx.lineCap='round'; ctx.lineJoin='round';
+        ctx.moveTo(pts[0].x,pts[0].y);
+        for(let i=0;i<pts.length-1;i++){ const xc=(pts[i].x+pts[i+1].x)/2, yc=(pts[i].y+pts[i+1].y)/2; ctx.quadraticCurveTo(pts[i].x,pts[i].y,xc,yc); }
+        ctx.lineTo(pts[pts.length-1].x,pts[pts.length-1].y); ctx.stroke();
       }
-
-      ctx.fillStyle = textColor;
-      ctx.font = 'bold 11px Inter, system-ui, sans-serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'bottom';
-      ctx.fillText('Начало месяца', 2, height - 2);
-      
-      ctx.textAlign = 'right';
-      ctx.fillText('Конец месяца', width - 2, height - 2);
+      ctx.fillStyle=textColor; ctx.font='bold 11px Inter'; ctx.textBaseline='bottom';
+      ctx.textAlign='left'; ctx.fillText('Начало месяца',2,h-2);
+      ctx.textAlign='right'; ctx.fillText('Конец месяца',w-2,h-2);
     }
 
-    function findTopBadReasons() {
-      const badReasons = {};
-      Object.values(moodData).forEach(e => {
-        if (e.mood && e.mood <= 2 && e.categories) {
-          e.categories.forEach(c => badReasons[c] = (badReasons[c] || 0) + 1);
-        }
-      });
-      const sorted = Object.entries(badReasons).sort((a,b) => b[1] - a[1]);
-      const top3 = sorted.slice(0, 3).map(([cat, count]) => `${cat} (${count})`).join(', ');
-      document.getElementById('topBadReasons').textContent = top3 || '—';
-    }
-
-    document.getElementById('prevMonthBtn').addEventListener('click', ()=>{ 
-      currentDate.setMonth(currentDate.getMonth()-1); 
-      renderCalendar(); 
-    });
-    document.getElementById('nextMonthBtn').addEventListener('click', ()=>{ 
-      currentDate.setMonth(currentDate.getMonth()+1); 
-      renderCalendar(); 
-    });
-    document.getElementById('todayBtn').addEventListener('click', ()=>{ 
-      currentDate = new Date();
+    document.getElementById('prevMonthBtn').addEventListener('click',()=>{ currentDate.setMonth(currentDate.getMonth()-1); renderCalendar(); });
+    document.getElementById('nextMonthBtn').addEventListener('click',()=>{ currentDate.setMonth(currentDate.getMonth()+1); renderCalendar(); });
+    document.getElementById('todayBtn').addEventListener('click',()=>{
+      currentDate = getUserNow();
       renderCalendar();
+      openModal(getTodayKey());
     });
 
+    updateTzDisplay();
     loadData();
     renderCalendar();
   })();
