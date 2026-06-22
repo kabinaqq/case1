@@ -82,7 +82,7 @@
 
     .app-title {
       font-weight: 650;
-      font-size: 1.15rem;
+      font-size: 1rem;
       white-space: nowrap;
     }
 
@@ -186,13 +186,23 @@
       font-weight: 600;
       color: var(--text-secondary);
       margin-bottom: 6px;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       gap: 6px;
+      align-items: end;
     }
 
     .weekdays-row .avg-header {
       font-size: 0.7rem;
       color: var(--text-secondary);
+      line-height: 1.2;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 2px;
+    }
+
+    .weekdays-row span:not(.avg-header) {
+      padding-bottom: 0;
     }
 
     .week-row {
@@ -343,7 +353,7 @@
       font-weight: 500;
     }
     .chart-wrapper {
-      padding: 0 8px;
+      padding: 0 4px;
     }
     canvas {
       width: 100%;
@@ -392,7 +402,7 @@
   <div class="card">
     <h3 style="margin-bottom:12px;">📈 Детальная аналитика</h3>
     <div class="chart-wrapper">
-      <canvas id="moodChart" height="180"></canvas>
+      <canvas id="moodChart" height="130"></canvas>
     </div>
     <div class="analytics-detail" id="topBadReasonsContainer">
       <strong>Основные причины плохих дней:</strong> <span id="topBadReasons">—</span>
@@ -474,7 +484,7 @@
       return (sum / moodsArray.length).toFixed(1);
     }
 
-    // ---------- Ð¢ÐµÐ¼Ð° ----------
+    // ---------- Тема ----------
     const themeToggle = document.getElementById('themeToggle');
     let themeMode = localStorage.getItem('mood_theme_mode') || 'auto';
 
@@ -514,7 +524,7 @@
 
     applyTheme(themeMode);
 
-    // ---------- ÐÐ°Ð»ÐµÐ½Ð´Ð°Ñ€ÑŒ ----------
+    // ---------- Календарь ----------
     function renderCalendar() {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
@@ -586,7 +596,7 @@
       updateStatsAndAnalytics();
     }
 
-    // ---------- ÐœÐ¾Ð´Ð°Ð»ÑŒÐ½Ð¾Ðµ Ð¾ÐºÐ½Ð¾ ----------
+    // ---------- Модальное окно ----------
     let currentModalDate = null, selectedMood = null, selectedCategories = [];
     const modal = document.getElementById('moodModal');
     const noteText = document.getElementById('noteText');
@@ -666,7 +676,7 @@
 
     window.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-    // ---------- Ð¡Ñ‚Ð°Ñ‚Ð¸ÑÑ‚Ð¸ÐºÐ° ----------
+    // ---------- Статистика ----------
     function updateStatsAndAnalytics() {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
@@ -697,14 +707,14 @@
       return 'var(--mood-red)';
     }
 
-    // ---------- Ð“Ñ€Ð°Ñ„Ð¸Ðº (ÑƒÐ¶Ðµ Ð¿Ð¾ Ð³Ð¾Ñ€Ð¸Ð·Ð¾Ð½Ñ‚Ð°Ð»Ð¸, Ñ ÑÐ¼Ð¾Ð´Ð·Ð¸ Ð½Ð°ÑÑ‚Ñ€Ð¾ÐµÐ½Ð¸Ñ) ----------
+    // ---------- График (высота 130, надписи прижаты к бокам) ----------
     function drawLineChart() {
       const canvas = document.getElementById('moodChart');
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
       const dpr = window.devicePixelRatio || 1;
       const width = canvas.clientWidth || 400;
-      const height = 180;
+      const height = 130;
       
       canvas.width = width * dpr;
       canvas.height = height * dpr;
@@ -728,13 +738,12 @@
         allDays.push({ day: d, mood: moodData[key]?.mood || null });
       }
 
-      // ÑƒÐ¶Ðµ Ð¿Ð¾ Ð³Ð¾Ñ€Ð¸Ð·Ð¾Ð½Ñ‚Ð°Ð»Ð¸: ÑƒÐ¼ÐµÐ½ÑŒÑˆÐ°ÐµÐ¼ Ð»ÐµÐ²Ñ‹Ð¹ Ð¸ Ð¿Ñ€Ð°Ð²Ñ‹Ð¹ Ð¾Ñ‚ÑÑ‚ÑƒÐ¿Ñ‹
-      const padding = { left: 55, right: 55, top: 25, bottom: 40 };
+      const padding = { left: 48, right: 48, top: 20, bottom: 32 };
       const chartW = width - padding.left - padding.right;
       const chartH = height - padding.top - padding.bottom;
 
-      // Ð¡ÐµÑ‚ÐºÐ° — ÑÐ¼Ð¾Ð´Ð·Ð¸ Ð½Ð°ÑÑ‚Ñ€Ð¾ÐµÐ½Ð¸Ñ
-      ctx.font = '18px Inter, sans-serif';
+      // Сетка — эмодзи настроения
+      ctx.font = '16px Inter, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
       const emojis = ['', '😞', '😕', '🙂', '😄'];
@@ -751,10 +760,10 @@
         ctx.setLineDash([]);
         
         ctx.fillStyle = textColor;
-        ctx.fillText(emojis[internalVal], 12, y);
+        ctx.fillText(emojis[internalVal], 8, y);
       }
 
-      // Ð›Ð¸Ð½Ð¸Ñ Ð¸ Ñ‚Ð¾Ñ‡ÐºÐ¸
+      // Линия и точки
       if (allDays.length > 0) {
         ctx.beginPath();
         ctx.strokeStyle = '#3b82f6';
@@ -777,7 +786,7 @@
           const internalVal = item.mood;
           const y = padding.top + chartH - ((internalVal - 1) / 3) * chartH;
           ctx.beginPath();
-          ctx.arc(x, y, 3.5, 0, 2 * Math.PI);
+          ctx.arc(x, y, 3, 0, 2 * Math.PI);
           ctx.fillStyle = '#3b82f6';
           ctx.fill();
           ctx.strokeStyle = '#ffffff';
@@ -786,15 +795,15 @@
         });
       }
 
-      // ÐŸÐ¾Ð´Ð¿Ð¸ÑÐ¸ Ñ ÑƒÐ²ÐµÐ»Ð¸Ñ‡ÐµÐ½Ð½Ñ‹Ð¼ Ð¾Ñ‚ÑÑ‚ÑƒÐ¿Ð¾Ð¼ Ð¾Ñ‚ ÐºÑ€Ð°Ñ'Ð²
+      // Подписи — прижаты к бокам
       ctx.fillStyle = textColor;
-      ctx.font = 'bold 12px Inter, system-ui, sans-serif';
+      ctx.font = 'bold 11px Inter, system-ui, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'bottom';
-      ctx.fillText('Начало месяца', padding.left, height - 6);
+      ctx.fillText('Начало месяца', 4, height - 4);
       
       ctx.textAlign = 'right';
-      ctx.fillText('Конец месяца', width - padding.right, height - 6);
+      ctx.fillText('Конец месяца', width - 4, height - 4);
     }
 
     function findTopBadReasons() {
