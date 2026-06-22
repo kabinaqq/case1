@@ -158,6 +158,8 @@
     button:hover { background: var(--border); border-color: var(--text-secondary); }
     button.primary { background: #3b82f6; color: white; border: none; font-weight: 600; }
     button.primary:hover { background: #2563eb; }
+    button.danger { background: var(--mood-red-soft); color: var(--mood-red); border: 1px solid var(--mood-red); }
+    button.danger:hover { background: var(--mood-red); color: white; }
     .weekdays-row {
       display: grid;
       grid-template-columns: repeat(7, 1fr) 42px;
@@ -243,10 +245,7 @@
       width: 60px;
       height: 60px;
     }
-    .mood-option:hover {
-      opacity: 0.9;
-      transform: scale(1.05);
-    }
+    .mood-option:hover { opacity: 0.9; transform: scale(1.05); }
     .mood-option.selected {
       opacity: 1;
       transform: scale(1.1);
@@ -291,6 +290,9 @@
     .settings-section h4 {
       margin-bottom: 10px;
       font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
     .category-item {
       display: flex;
@@ -310,9 +312,7 @@
       padding: 4px 8px;
       border-radius: 8px;
     }
-    .category-item .delete-cat-btn:hover {
-      background: var(--mood-red-soft);
-    }
+    .category-item .delete-cat-btn:hover { background: var(--mood-red-soft); }
     .category-item .toggle-switch {
       position: relative;
       width: 44px;
@@ -343,12 +343,8 @@
       transition: 0.3s;
       border-radius: 50%;
     }
-    input:checked + .toggle-slider {
-      background-color: #3b82f6;
-    }
-    input:checked + .toggle-slider:before {
-      transform: translateX(20px);
-    }
+    input:checked + .toggle-slider { background-color: #3b82f6; }
+    input:checked + .toggle-slider:before { transform: translateX(20px); }
     .add-cat-row {
       display: flex;
       gap: 8px;
@@ -361,6 +357,43 @@
     .add-cat-row button {
       padding: 10px 14px;
       white-space: nowrap;
+    }
+    .confirm-dialog {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      backdrop-filter: blur(4px);
+    }
+    .confirm-dialog-content {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 24px 20px;
+      width: 90%;
+      max-width: 340px;
+      text-align: center;
+      box-shadow: 0 20px 35px rgba(0,0,0,0.3);
+    }
+    .confirm-dialog-content p {
+      margin-bottom: 16px;
+      font-size: 1rem;
+    }
+    .confirm-dialog-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .restore-link {
+      font-size: 0.8rem;
+      color: #3b82f6;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 4px 8px;
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -448,7 +481,10 @@
     
     <!-- Настройки категорий -->
     <div class="settings-section">
-      <h4>Причины настроения</h4>
+      <h4>
+        Причины настроения
+        <button class="restore-link" id="restoreDefaultBtn">Восстановить по умолчанию</button>
+      </h4>
       <div id="categoriesList"></div>
       <div class="add-cat-row">
         <input type="text" id="newCategoryInput" placeholder="Новая категория..." maxlength="30">
@@ -464,7 +500,6 @@
     const SETTINGS_KEY = 'mood_app_settings';
     let moodData = {};
     
-    // Стандартные категории
     const DEFAULT_CATEGORIES = [
       { name: 'Работа', enabled: true },
       { name: 'Учеба', enabled: true },
@@ -513,21 +548,15 @@
     let timezoneMode = localStorage.getItem('mood_tz_mode') || 'auto';
     let userTimezoneOffset;
 
-    function getAutoTimezoneOffset() {
-      return -new Date().getTimezoneOffset();
-    }
+    function getAutoTimezoneOffset() { return -new Date().getTimezoneOffset(); }
 
     function initTimezone() {
-      if (timezoneMode === 'auto') {
-        userTimezoneOffset = getAutoTimezoneOffset();
-      } else {
-        userTimezoneOffset = parseInt(localStorage.getItem('mood_tz_offset') || '180');
-      }
+      if (timezoneMode === 'auto') userTimezoneOffset = getAutoTimezoneOffset();
+      else userTimezoneOffset = parseInt(localStorage.getItem('mood_tz_offset') || '180');
     }
 
     function getCurrentOffset() {
-      if (timezoneMode === 'auto') return getAutoTimezoneOffset();
-      return userTimezoneOffset;
+      return timezoneMode === 'auto' ? getAutoTimezoneOffset() : userTimezoneOffset;
     }
 
     const moodMap = {
@@ -581,6 +610,35 @@
       return `UTC${sign}${h}${m ? ':' + String(m).padStart(2,'0') : ''}`;
     }
 
+    // Функция показа диалога подтверждения
+    function showConfirmDialog(message, onConfirm) {
+      const dialog = document.createElement('div');
+      dialog.className = 'confirm-dialog';
+      dialog.innerHTML = `
+        <div class="confirm-dialog-content">
+          <p>${message}</p>
+          <div class="confirm-dialog-buttons">
+            <button class="cancel-btn">Отмена</button>
+            <button class="danger confirm-btn">Удалить</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(dialog);
+      
+      dialog.querySelector('.cancel-btn').addEventListener('click', () => {
+        document.body.removeChild(dialog);
+      });
+      
+      dialog.querySelector('.confirm-btn').addEventListener('click', () => {
+        document.body.removeChild(dialog);
+        onConfirm();
+      });
+      
+      dialog.addEventListener('click', (e) => {
+        if (e.target === dialog) document.body.removeChild(dialog);
+      });
+    }
+
     // ---------- Настройки ----------
     const themeSelect = document.getElementById('themeSelect');
     const tzModeSelect = document.getElementById('tzModeSelect');
@@ -623,7 +681,6 @@
         </div>
       `).join('');
 
-      // Обработчики переключения
       document.querySelectorAll('.cat-toggle').forEach(toggle => {
         toggle.addEventListener('change', (e) => {
           const idx = parseInt(e.target.dataset.index);
@@ -633,14 +690,16 @@
         });
       });
 
-      // Обработчики удаления
       document.querySelectorAll('.delete-cat-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const idx = parseInt(e.target.dataset.index);
-          appSettings.categories.splice(idx, 1);
-          saveSettings();
-          renderCategoriesList();
-          renderCalendar();
+          const catName = appSettings.categories[idx].name;
+          showConfirmDialog(`Точно удалить категорию «${catName}»?`, () => {
+            appSettings.categories.splice(idx, 1);
+            saveSettings();
+            renderCategoriesList();
+            renderCalendar();
+          });
         });
       });
     }
@@ -659,14 +718,19 @@
       newCategoryInput.value = '';
     }
 
-    document.getElementById('addCategoryBtn').addEventListener('click', () => {
-      addCategory(newCategoryInput.value);
-    });
+    function restoreDefaultCategories() {
+      showConfirmDialog('Восстановить категории по умолчанию? Все пользовательские категории будут удалены.', () => {
+        appSettings.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+        saveSettings();
+        renderCategoriesList();
+        renderCalendar();
+      });
+    }
 
+    document.getElementById('addCategoryBtn').addEventListener('click', () => addCategory(newCategoryInput.value));
+    document.getElementById('restoreDefaultBtn').addEventListener('click', restoreDefaultCategories);
     newCategoryInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        addCategory(newCategoryInput.value);
-      }
+      if (e.key === 'Enter') addCategory(newCategoryInput.value);
     });
 
     function applyTheme(mode) {
@@ -847,10 +911,12 @@
 
     document.getElementById('deleteEntryBtn').addEventListener('click', () => {
       if (curModalDate && moodData[curModalDate]) {
-        delete moodData[curModalDate];
-        saveData();
-        closeMood();
-        renderCalendar();
+        showConfirmDialog('Точно удалить запись настроения за этот день?', () => {
+          delete moodData[curModalDate];
+          saveData();
+          closeMood();
+          renderCalendar();
+        });
       }
     });
 
