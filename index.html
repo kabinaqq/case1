@@ -22,14 +22,14 @@
       --radius: 20px;
       --radius-sm: 14px;
       --transition: 0.2s ease;
-      --mood-red: #dc2626;
-      --mood-orange: #fb923c;
-      --mood-yellow: #facc15;
-      --mood-green: #22c55e;
-      --mood-red-soft: #fecaca;
-      --mood-orange-soft: #ffedd5;
-      --mood-yellow-soft: #fef9c3;
-      --mood-green-soft: #bbf7d0;
+      --mood-red: #FF0000;
+      --mood-orange: #FF8F00;
+      --mood-yellow: #FFFF00;
+      --mood-green: #00FF00;
+      --mood-red-soft: #ffcccc;
+      --mood-orange-soft: #ffe4c4;
+      --mood-yellow-soft: #ffffcc;
+      --mood-green-soft: #ccffcc;
       --canvas-bg: #ffffff;
       --chart-grid: #e2e8f0;
     }
@@ -42,10 +42,10 @@
       --border: #334155;
       --hover: #2d3a4f;
       --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-      --mood-red-soft: #7f1d1d;
-      --mood-orange-soft: #7c2d12;
-      --mood-yellow-soft: #713f12;
-      --mood-green-soft: #14532d;
+      --mood-red-soft: #660000;
+      --mood-orange-soft: #663900;
+      --mood-yellow-soft: #666600;
+      --mood-green-soft: #006600;
       --canvas-bg: #1e293b;
       --chart-grid: #334155;
     }
@@ -199,10 +199,6 @@
       align-items: flex-end;
       justify-content: center;
       padding-bottom: 2px;
-    }
-
-    .weekdays-row span:not(.avg-header) {
-      padding-bottom: 0;
     }
 
     .week-row {
@@ -707,7 +703,7 @@
       return 'var(--mood-red)';
     }
 
-    // ---------- График (высота 130, надписи прижаты к бокам) ----------
+    // ---------- График ----------
     function drawLineChart() {
       const canvas = document.getElementById('moodChart');
       if (!canvas) return;
@@ -742,7 +738,6 @@
       const chartW = width - padding.left - padding.right;
       const chartH = height - padding.top - padding.bottom;
 
-      // Сетка — эмодзи настроения
       ctx.font = '16px Inter, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
@@ -763,7 +758,6 @@
         ctx.fillText(emojis[internalVal], 8, y);
       }
 
-      // Линия и точки
       if (allDays.length > 0) {
         ctx.beginPath();
         ctx.strokeStyle = '#3b82f6';
@@ -795,7 +789,6 @@
         });
       }
 
-      // Подписи — прижаты к бокам
       ctx.fillStyle = textColor;
       ctx.font = 'bold 11px Inter, system-ui, sans-serif';
       ctx.textAlign = 'left';
