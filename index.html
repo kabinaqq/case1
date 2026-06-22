@@ -273,7 +273,16 @@
       transition: all 0.2s;
     }
     .chip.active { background: #3b82f6; color: white; border-color: white; }
-    canvas { width: 100%; border-radius: 16px; background: var(--canvas-bg); }
+    .chart-wrapper {
+      width: 100%;
+      margin: 0 -4px;
+    }
+    canvas {
+      width: 100%;
+      border-radius: 16px;
+      background: var(--canvas-bg);
+      display: block;
+    }
     .analytics-detail {
       display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px;
       font-size: 0.95rem; background: var(--hover); padding: 12px; border-radius: 16px;
@@ -423,7 +432,9 @@
   </div>
   <div class="card">
     <h3 style="margin-bottom:12px;">📈 Детальная аналитика</h3>
-    <canvas id="moodChart" height="140"></canvas>
+    <div class="chart-wrapper">
+      <canvas id="moodChart"></canvas>
+    </div>
     <div class="analytics-detail"><strong>Основные причины плохих дней:</strong> <span id="topBadReasons">—</span></div>
   </div>
 </div>
@@ -521,43 +532,30 @@
     let appSettings = {};
 
     function loadSettings() {
-      try {
-        appSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-      } catch(e) { appSettings = {}; }
+      try { appSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch(e) { appSettings = {}; }
       if (!appSettings.categories) {
         appSettings.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
       }
     }
 
-    function saveSettings() {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings));
-    }
-
-    function getEnabledCategories() {
-      return appSettings.categories.filter(c => c.enabled).map(c => c.name);
-    }
+    function saveSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings)); }
+    function getEnabledCategories() { return appSettings.categories.filter(c => c.enabled).map(c => c.name); }
 
     function loadData() {
       try { moodData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) { moodData = {}; }
     }
-    function saveData() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(moodData));
-    }
+    function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(moodData)); }
 
     let currentDate = new Date();
     let timezoneMode = localStorage.getItem('mood_tz_mode') || 'auto';
     let userTimezoneOffset;
 
     function getAutoTimezoneOffset() { return -new Date().getTimezoneOffset(); }
-
     function initTimezone() {
       if (timezoneMode === 'auto') userTimezoneOffset = getAutoTimezoneOffset();
       else userTimezoneOffset = parseInt(localStorage.getItem('mood_tz_offset') || '180');
     }
-
-    function getCurrentOffset() {
-      return timezoneMode === 'auto' ? getAutoTimezoneOffset() : userTimezoneOffset;
-    }
+    function getCurrentOffset() { return timezoneMode === 'auto' ? getAutoTimezoneOffset() : userTimezoneOffset; }
 
     const moodMap = {
       1: { emoji:'😞', bgClass:'mood-red' },
@@ -610,7 +608,6 @@
       return `UTC${sign}${h}${m ? ':' + String(m).padStart(2,'0') : ''}`;
     }
 
-    // Функция показа диалога подтверждения
     function showConfirmDialog(message, onConfirm) {
       const dialog = document.createElement('div');
       dialog.className = 'confirm-dialog';
@@ -624,19 +621,9 @@
         </div>
       `;
       document.body.appendChild(dialog);
-      
-      dialog.querySelector('.cancel-btn').addEventListener('click', () => {
-        document.body.removeChild(dialog);
-      });
-      
-      dialog.querySelector('.confirm-btn').addEventListener('click', () => {
-        document.body.removeChild(dialog);
-        onConfirm();
-      });
-      
-      dialog.addEventListener('click', (e) => {
-        if (e.target === dialog) document.body.removeChild(dialog);
-      });
+      dialog.querySelector('.cancel-btn').addEventListener('click', () => document.body.removeChild(dialog));
+      dialog.querySelector('.confirm-btn').addEventListener('click', () => { document.body.removeChild(dialog); onConfirm(); });
+      dialog.addEventListener('click', (e) => { if (e.target === dialog) document.body.removeChild(dialog); });
     }
 
     // ---------- Настройки ----------
@@ -729,9 +716,7 @@
 
     document.getElementById('addCategoryBtn').addEventListener('click', () => addCategory(newCategoryInput.value));
     document.getElementById('restoreDefaultBtn').addEventListener('click', restoreDefaultCategories);
-    newCategoryInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') addCategory(newCategoryInput.value);
-    });
+    newCategoryInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addCategory(newCategoryInput.value); });
 
     function applyTheme(mode) {
       const isDark = mode === 'dark' || (mode === 'auto' && window.matchMedia('(prefers-color-scheme:dark)').matches);
@@ -942,62 +927,137 @@
       document.getElementById('topBadReasons').textContent = top || '—';
     }
 
+    // ---------- Адаптивный график ----------
     function drawLineChart() {
       const canvas = document.getElementById('moodChart');
       if (!canvas) return;
-      const ctx = canvas.getContext('2d'), dpr = window.devicePixelRatio || 1, w = canvas.clientWidth || 400, h = 140;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-      canvas.style.width = w + 'px';
-      canvas.style.height = h + 'px';
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      
+      // Адаптивная ширина: используем ширину контейнера
+      const containerWidth = canvas.parentElement.clientWidth;
+      const width = Math.min(containerWidth, 700);
+      
+      // Адаптивная высота: 130px на десктопе, 110px на мобильных
+      const height = width < 400 ? 110 : 130;
+      
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
       ctx.scale(dpr, dpr);
-      const textColor = getComputedStyle(document.body).getPropertyValue('--text');
-      const gridColor = getComputedStyle(document.body).getPropertyValue('--chart-grid');
-      ctx.clearRect(0, 0, w, h);
+
+      const style = getComputedStyle(document.body);
+      const textColor = style.getPropertyValue('--text');
+      const gridColor = style.getPropertyValue('--chart-grid');
+
+      ctx.clearRect(0, 0, width, height);
+      
       const y = currentDate.getFullYear(), m = currentDate.getMonth(), days = new Date(y, m + 1, 0).getDate();
       const all = [];
-      for (let d = 1; d <= days; d++) all.push({ day: d, mood: moodData[formatDateKey(y, m, d)]?.mood || null });
-      const pad = { left: 40, right: 16, top: 20, bottom: 30 }, cw = w - pad.left - pad.right, ch = h - pad.top - pad.bottom;
-      ctx.font = '15px Inter';
+      for (let d = 1; d <= days; d++) {
+        all.push({ day: d, mood: moodData[formatDateKey(y, m, d)]?.mood || null });
+      }
+
+      const isMobile = width < 400;
+      const padding = { 
+        left: isMobile ? 38 : 44, 
+        right: isMobile ? 10 : 14, 
+        top: 18, 
+        bottom: 34 
+      };
+      const chartW = width - padding.left - padding.right;
+      const chartH = height - padding.top - padding.bottom;
+
+      // Сетка с эмодзи
+      ctx.font = `${isMobile ? '13px' : '15px'} Inter, system-ui, sans-serif`;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
       ['', '😞', '😕', '🙂', '😄'].forEach((em, i) => {
         if (i === 0) return;
-        const yPos = pad.top + ch - ((i - 1) / 3) * ch;
+        const yPos = padding.top + chartH - ((i - 1) / 3) * chartH;
         ctx.beginPath();
         ctx.strokeStyle = gridColor;
+        ctx.lineWidth = 1;
         ctx.setLineDash([4, 4]);
-        ctx.moveTo(pad.left, yPos);
-        ctx.lineTo(w - pad.right, yPos);
+        ctx.moveTo(padding.left, yPos);
+        ctx.lineTo(width - padding.right, yPos);
         ctx.stroke();
         ctx.setLineDash([]);
         ctx.fillStyle = textColor;
-        ctx.fillText(em, 2, yPos);
+        ctx.fillText(em, isMobile ? 2 : 4, yPos);
       });
+
+      // Плавная кривая через кубические кривые Безье (Catmull-Rom)
       const pts = [];
-      all.forEach((it, i) => { if (it.mood !== null) pts.push({ x: pad.left + (i / (days - 1)) * cw, y: pad.top + ch - ((it.mood - 1) / 3) * ch }); });
+      all.forEach((it, i) => {
+        if (it.mood !== null) {
+          pts.push({ 
+            x: padding.left + (i / (days - 1)) * chartW, 
+            y: padding.top + chartH - ((it.mood - 1) / 3) * chartH 
+          });
+        }
+      });
+
       if (pts.length >= 2) {
         ctx.beginPath();
         ctx.strokeStyle = '#3b82f6';
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = isMobile ? 2 : 2.5;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
+        
         ctx.moveTo(pts[0].x, pts[0].y);
-        for (let i = 0; i < pts.length - 1; i++) {
-          const xc = (pts[i].x + pts[i + 1].x) / 2, yc = (pts[i].y + pts[i + 1].y) / 2;
-          ctx.quadraticCurveTo(pts[i].x, pts[i].y, xc, yc);
+        
+        if (pts.length === 2) {
+          // Для двух точек — простая квадратичная кривая
+          const midX = (pts[0].x + pts[1].x) / 2;
+          const midY = (pts[0].y + pts[1].y) / 2;
+          ctx.quadraticCurveTo(pts[0].x, pts[0].y, midX, midY);
+          ctx.lineTo(pts[1].x, pts[1].y);
+        } else {
+          // Catmull-Rom сплайн для плавной кривой
+          for (let i = 0; i < pts.length - 1; i++) {
+            const p0 = pts[Math.max(0, i - 1)];
+            const p1 = pts[i];
+            const p2 = pts[i + 1];
+            const p3 = pts[Math.min(pts.length - 1, i + 2)];
+            
+            const cp1x = p1.x + (p2.x - p0.x) / 6;
+            const cp1y = p1.y + (p2.y - p0.y) / 6;
+            const cp2x = p2.x - (p3.x - p1.x) / 6;
+            const cp2y = p2.y - (p3.y - p1.y) / 6;
+            
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+          }
         }
-        ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
         ctx.stroke();
       }
+
+      // Подписи в 2 строки, системным шрифтом, смещённые к центру
       ctx.fillStyle = textColor;
-      ctx.font = 'bold 11px Inter';
+      ctx.font = `${isMobile ? '10px' : '11px'} system-ui, -apple-system, sans-serif`;
       ctx.textBaseline = 'bottom';
-      ctx.textAlign = 'left';
-      ctx.fillText('Начало месяца', 2, h - 2);
-      ctx.textAlign = 'right';
-      ctx.fillText('Конец месяца', w - 2, h - 2);
+      
+      // Левая подпись (Начало / месяца)
+      const leftX = padding.left + chartW * 0.08;
+      ctx.textAlign = 'center';
+      ctx.fillText('Начало', leftX, height - 12);
+      ctx.fillText('месяца', leftX, height - 2);
+      
+      // Правая подпись (Конец / месяца)
+      const rightX = width - padding.right - chartW * 0.08;
+      ctx.fillText('Конец', rightX, height - 12);
+      ctx.fillText('месяца', rightX, height - 2);
     }
+
+    // Обработчик изменения размера окна
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        drawLineChart();
+      }, 150);
+    });
 
     document.getElementById('prevMonthBtn').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); });
     document.getElementById('nextMonthBtn').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); });
