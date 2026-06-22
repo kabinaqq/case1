@@ -213,7 +213,7 @@
     .modal.active { display: flex; }
     .modal-content {
       background: var(--surface); border-radius: var(--radius); padding: 20px 16px;
-      width: 90%; max-width: 380px; box-shadow: 0 20px 35px rgba(0,0,0,0.3);
+      width: 90%; max-width: 420px; box-shadow: 0 20px 35px rgba(0,0,0,0.3);
       max-height: 90vh; overflow-y: auto; position: relative;
     }
     .modal-close {
@@ -263,13 +263,15 @@
     .mood-option[data-mood="4"] { background: var(--mood-green-soft); }
 
     textarea, input, select {
-      width: 100%; padding: 12px; border-radius: 14px; border: 1px solid var(--border);
-      background: var(--bg); color: var(--text); margin: 8px 0; font-family: inherit;
+      width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text); margin: 6px 0; font-family: inherit;
+      font-size: 0.9rem;
     }
     .category-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
     .chip {
       background: var(--hover); padding: 8px 16px; border-radius: 30px;
       font-size: 0.85rem; cursor: pointer; border: 1px solid transparent;
+      transition: all 0.2s;
     }
     .chip.active { background: #3b82f6; color: white; border-color: white; }
     canvas { width: 100%; border-radius: 16px; background: var(--canvas-bg); }
@@ -279,17 +281,86 @@
     }
     .settings-row {
       display: flex; align-items: center; justify-content: space-between;
-      margin: 16px 0; gap: 12px;
+      margin: 12px 0; gap: 12px;
     }
-    .tz-control { display: flex; align-items: center; gap: 8px; }
-    .settings-select {
-      padding: 8px 12px;
-      border-radius: 12px;
-      background: var(--hover);
-      color: var(--text);
-      border: 1px solid var(--border);
-      font-family: inherit;
-      font-size: 0.9rem;
+    .settings-section {
+      margin: 16px 0;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+    .settings-section h4 {
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+    }
+    .category-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .category-item:last-child { border-bottom: none; }
+    .category-item .delete-cat-btn {
+      background: none;
+      border: none;
+      color: var(--mood-red);
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 4px 8px;
+      border-radius: 8px;
+    }
+    .category-item .delete-cat-btn:hover {
+      background: var(--mood-red-soft);
+    }
+    .category-item .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--border);
+      transition: 0.3s;
+      border-radius: 24px;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+    input:checked + .toggle-slider {
+      background-color: #3b82f6;
+    }
+    input:checked + .toggle-slider:before {
+      transform: translateX(20px);
+    }
+    .add-cat-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .add-cat-row input {
+      flex: 1;
+      margin: 0;
+    }
+    .add-cat-row button {
+      padding: 10px 14px;
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -351,7 +422,7 @@
     <h3>Настройки</h3>
     <div class="settings-row">
       <span>Тема оформления</span>
-      <select id="themeSelect" class="settings-select">
+      <select id="themeSelect" class="settings-select" style="width:auto;">
         <option value="auto">Авто (системная)</option>
         <option value="light">Светлая</option>
         <option value="dark">Тёмная</option>
@@ -374,13 +445,62 @@
         </div>
       </div>
     </div>
+    
+    <!-- Настройки категорий -->
+    <div class="settings-section">
+      <h4>Причины настроения</h4>
+      <div id="categoriesList"></div>
+      <div class="add-cat-row">
+        <input type="text" id="newCategoryInput" placeholder="Новая категория..." maxlength="30">
+        <button id="addCategoryBtn" class="primary" style="font-size:0.85rem;">Добавить</button>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
   (function() {
     const STORAGE_KEY = 'mood_calendar_data';
+    const SETTINGS_KEY = 'mood_app_settings';
     let moodData = {};
+    
+    // Стандартные категории
+    const DEFAULT_CATEGORIES = [
+      { name: 'Работа', enabled: true },
+      { name: 'Учеба', enabled: true },
+      { name: 'Отношения', enabled: true },
+      { name: 'Семья', enabled: true },
+      { name: 'Здоровье', enabled: true },
+      { name: 'Финансы', enabled: true },
+      { name: 'Друзья', enabled: true },
+      { name: 'Отдых', enabled: true },
+      { name: 'Спорт', enabled: true },
+      { name: 'Питание', enabled: true },
+      { name: 'Погода', enabled: true },
+      { name: 'Сон', enabled: true },
+      { name: 'Хобби', enabled: true },
+      { name: 'Путешествия', enabled: true },
+      { name: 'Другое', enabled: true }
+    ];
+    
+    let appSettings = {};
+
+    function loadSettings() {
+      try {
+        appSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+      } catch(e) { appSettings = {}; }
+      if (!appSettings.categories) {
+        appSettings.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+      }
+    }
+
+    function saveSettings() {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings));
+    }
+
+    function getEnabledCategories() {
+      return appSettings.categories.filter(c => c.enabled).map(c => c.name);
+    }
 
     function loadData() {
       try { moodData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) { moodData = {}; }
@@ -390,7 +510,6 @@
     }
 
     let currentDate = new Date();
-
     let timezoneMode = localStorage.getItem('mood_tz_mode') || 'auto';
     let userTimezoneOffset;
 
@@ -407,13 +526,10 @@
     }
 
     function getCurrentOffset() {
-      if (timezoneMode === 'auto') {
-        return getAutoTimezoneOffset();
-      }
+      if (timezoneMode === 'auto') return getAutoTimezoneOffset();
       return userTimezoneOffset;
     }
 
-    const CATEGORIES = ['Работа','Учеба','Отношения','Семья','Здоровье','Финансы','Друзья','Отдых','Спорт','Питание','Погода','Сон','Хобби','Путешествия','Другое'];
     const moodMap = {
       1: { emoji:'😞', bgClass:'mood-red' },
       2: { emoji:'😕', bgClass:'mood-orange' },
@@ -473,6 +589,8 @@
     const autoTzInfo = document.getElementById('autoTzInfo');
     const autoTzValue = document.getElementById('autoTzValue');
     const settingsModal = document.getElementById('settingsModal');
+    const categoriesList = document.getElementById('categoriesList');
+    const newCategoryInput = document.getElementById('newCategoryInput');
 
     function updateTzDisplay() {
       const offset = getCurrentOffset();
@@ -492,6 +610,64 @@
       }
       updateTzDisplay();
     }
+
+    function renderCategoriesList() {
+      categoriesList.innerHTML = appSettings.categories.map((cat, index) => `
+        <div class="category-item">
+          <span style="flex:1;">${cat.name}</span>
+          <label class="toggle-switch">
+            <input type="checkbox" ${cat.enabled ? 'checked' : ''} data-index="${index}" class="cat-toggle">
+            <span class="toggle-slider"></span>
+          </label>
+          <button class="delete-cat-btn" data-index="${index}">✕</button>
+        </div>
+      `).join('');
+
+      // Обработчики переключения
+      document.querySelectorAll('.cat-toggle').forEach(toggle => {
+        toggle.addEventListener('change', (e) => {
+          const idx = parseInt(e.target.dataset.index);
+          appSettings.categories[idx].enabled = e.target.checked;
+          saveSettings();
+          renderCalendar();
+        });
+      });
+
+      // Обработчики удаления
+      document.querySelectorAll('.delete-cat-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(e.target.dataset.index);
+          appSettings.categories.splice(idx, 1);
+          saveSettings();
+          renderCategoriesList();
+          renderCalendar();
+        });
+      });
+    }
+
+    function addCategory(name) {
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      if (appSettings.categories.some(c => c.name.toLowerCase() === trimmed.toLowerCase())) {
+        alert('Такая категория уже существует');
+        return;
+      }
+      appSettings.categories.push({ name: trimmed, enabled: true });
+      saveSettings();
+      renderCategoriesList();
+      renderCalendar();
+      newCategoryInput.value = '';
+    }
+
+    document.getElementById('addCategoryBtn').addEventListener('click', () => {
+      addCategory(newCategoryInput.value);
+    });
+
+    newCategoryInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        addCategory(newCategoryInput.value);
+      }
+    });
 
     function applyTheme(mode) {
       const isDark = mode === 'dark' || (mode === 'auto' && window.matchMedia('(prefers-color-scheme:dark)').matches);
@@ -539,6 +715,7 @@
 
     document.getElementById('settingsBtn').addEventListener('click', () => {
       updateTzControls();
+      renderCategoriesList();
       settingsModal.classList.add('active');
     });
 
@@ -557,9 +734,7 @@
     // ---------- Календарь ----------
     function renderCalendar() {
       const year = currentDate.getFullYear(), month = currentDate.getMonth();
-      document.getElementById('monthYearDisplay').textContent = `${currentDate.toLocaleString('ru',{month:'long'})} ${year}`;
-      // Делаем первую букву заглавной
-      const displayText = document.getElementById('monthYearDisplay').textContent;
+      const displayText = `${currentDate.toLocaleString('ru',{month:'long'})} ${year}`;
       document.getElementById('monthYearDisplay').textContent = displayText.charAt(0).toUpperCase() + displayText.slice(1);
       
       const firstDay = new Date(year, month, 1).getDay();
@@ -641,7 +816,8 @@
     }
 
     function renderCatChips() {
-      catChips.innerHTML = CATEGORIES.map(c => `<span class="chip ${selCats.includes(c) ? 'active' : ''}" data-cat="${c}">${c}</span>`).join('');
+      const enabledCats = getEnabledCategories();
+      catChips.innerHTML = enabledCats.map(c => `<span class="chip ${selCats.includes(c) ? 'active' : ''}" data-cat="${c}">${c}</span>`).join('');
       document.querySelectorAll('#categoryChips .chip').forEach(ch => ch.addEventListener('click', (ev) => {
         const cat = ev.target.dataset.cat;
         selCats = selCats.includes(cat) ? selCats.filter(x => x !== cat) : [...selCats, cat];
@@ -765,6 +941,7 @@
       openModal(getTodayKey());
     });
 
+    loadSettings();
     initTimezone();
     updateTzControls();
     loadData();
