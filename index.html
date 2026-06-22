@@ -30,8 +30,8 @@
       --mood-orange-soft: #ffe4c4;
       --mood-yellow-soft: #ffffcc;
       --mood-green-soft: #ccffcc;
-      --mood-yellow-text: #7a7a00;
-      --mood-green-text: #006600;
+      --day-text-light: #4b5563;
+      --day-text-dark: #d1d5db;
       --canvas-bg: #ffffff;
       --chart-grid: #e2e8f0;
     }
@@ -48,8 +48,6 @@
       --mood-orange-soft: #663900;
       --mood-yellow-soft: #666600;
       --mood-green-soft: #006600;
-      --mood-yellow-text: #ffff66;
-      --mood-green-text: #66ff66;
       --canvas-bg: #1e293b;
       --chart-grid: #334155;
     }
@@ -225,6 +223,11 @@
       background: transparent;
       font-size: 0.9rem;
       border: 1px solid transparent;
+      color: var(--day-text-light);
+    }
+
+    body.dark .day-cell {
+      color: var(--day-text-dark);
     }
 
     .day-cell:hover {
@@ -235,6 +238,10 @@
     .day-cell.other-month {
       color: #94a3b8;
       opacity: 0.55;
+    }
+
+    body.dark .day-cell.other-month {
+      color: #6b7280;
     }
 
     .day-cell.today {
@@ -252,14 +259,18 @@
       font-size: 0.8rem;
       font-weight: 600;
       background: var(--hover);
-      color: var(--text);
+      color: var(--day-text-light);
       margin-left: 2px;
     }
 
-    .mood-red { background: var(--mood-red-soft); color: var(--mood-red); }
-    .mood-orange { background: var(--mood-orange-soft); color: var(--mood-orange); }
-    .mood-yellow { background: var(--mood-yellow-soft); color: var(--mood-yellow-text); }
-    .mood-green { background: var(--mood-green-soft); color: var(--mood-green-text); }
+    body.dark .week-avg {
+      color: var(--day-text-dark);
+    }
+
+    .mood-red { background: var(--mood-red-soft); }
+    .mood-orange { background: var(--mood-orange-soft); }
+    .mood-yellow { background: var(--mood-yellow-soft); }
+    .mood-green { background: var(--mood-green-soft); }
 
     .modal {
       display: none;
@@ -605,9 +616,6 @@
           avgDiv.style.background = getAvgBgColor(num);
           avgDiv.style.color = getSmoothColor(num);
           avgDiv.style.fontWeight = '700';
-        } else {
-          avgDiv.style.color = 'var(--text)';
-          avgDiv.style.fontWeight = '600';
         }
         weekRow.appendChild(avgDiv);
         grid.appendChild(weekRow);
@@ -831,8 +839,8 @@
       renderCalendar(); 
     });
     document.getElementById('todayBtn').addEventListener('click', ()=>{ 
-      currentDate = new Date(); 
-      renderCalendar(); 
+      currentDate = new Date();
+      renderCalendar();
     });
 
     loadData();
